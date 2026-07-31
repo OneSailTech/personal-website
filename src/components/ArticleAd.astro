@@ -1,0 +1,51 @@
+<div class="article-ad" aria-label="广告">
+    <ins
+        class="adsbygoogle"
+        style="display:block; text-align:center;"
+        data-ad-layout="in-article"
+        data-ad-format="fluid"
+        data-ad-client="ca-pub-8610909763373370"
+        data-ad-slot="5025899844"
+    ></ins>
+</div>
+
+<script is:inline>
+    (() => {
+        const script = document.currentScript;
+        const ad = script?.previousElementSibling;
+        const content = ad?.parentElement;
+
+        if (!(ad instanceof HTMLElement) || !(content instanceof HTMLElement)) {
+            return;
+        }
+
+        const paragraphs = Array.from(content.children).filter(
+            (element) =>
+                element.tagName === 'P' &&
+                (element.textContent?.trim().length ?? 0) >= 40
+        );
+        const target = paragraphs[Math.min(2, paragraphs.length - 1)];
+
+        if (target) {
+            target.insertAdjacentElement('afterend', ad);
+        }
+
+        try {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (error) {
+            console.warn('AdSense 文章内广告加载失败', error);
+        }
+    })();
+</script>
+
+<style>
+    .article-ad {
+        width: 100%;
+        margin: 2.5rem 0;
+        overflow: hidden;
+    }
+
+    .article-ad :global(.adsbygoogle) {
+        width: 100%;
+    }
+</style>
