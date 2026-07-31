@@ -5,8 +5,12 @@ date: 2026-06-15
 tags:
     - Figma
     - Flutter
+    - dart
+    - Node.js
     - Android
 ---
+
+## 前言
 
 在 Flutter 项目里，设计师给出的 Figma 设计稿经常是 750px、720px 或 1080px 宽，而 Flutter 使用的是逻辑像素。
 
