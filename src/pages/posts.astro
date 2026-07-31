@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
+import BannerAd from '../components/BannerAd.astro';
 import { getCollection } from 'astro:content';
 
 const posts = (await getCollection('blog')).sort(
@@ -16,6 +17,8 @@ const posts = (await getCollection('blog')).sort(
             <h1>全部文章</h1>
             <p class="subtitle">记录技术探索与思考的过程</p>
         </section>
+
+        <BannerAd />
 
         {posts.length > 0 ? (
         <div class="posts-grid">
@@ -54,7 +57,7 @@ const posts = (await getCollection('blog')).sort(
 
     #posts-hero {
         text-align: center;
-        margin-bottom: 3rem;
+        margin-bottom: 1.5rem;
         animation: fadeInUp 0.8s ease-out;
     }
 

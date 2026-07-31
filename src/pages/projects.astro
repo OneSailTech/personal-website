@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
+import BannerAd from '../components/BannerAd.astro';
 
 const projects = [
     {
@@ -45,6 +46,8 @@ const projects = [
             <p class="subtitle">探索、创造与分享</p>
         </section>
 
+        <BannerAd />
+
         <div class="projects-grid">
             {projects.reverse().map((project) => (
                 <a href={project.url} target="_blank" rel="noopener" class="project-card">
@@ -75,7 +78,7 @@ const projects = [
 
     #projects-hero {
         text-align: center;
-        margin-bottom: 3rem;
+        margin-bottom: 1.5rem;
         animation: fadeInUp 0.8s ease-out;
     }
 

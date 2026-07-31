@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
+import BannerAd from '../components/BannerAd.astro';
 import { getCollection } from 'astro:content';
 
 const posts = (await getCollection('blog')).sort(
@@ -22,6 +23,7 @@ const posts = (await getCollection('blog')).sort(
                 <a class="button primary" href="/posts">浏览文章</a>
                 <a class="button secondary" href="https://github.com/XieYifan1201">Github</a>
             </div>
+            <BannerAd placement="home" />
         </section>
 
         {posts.length > 0 && (

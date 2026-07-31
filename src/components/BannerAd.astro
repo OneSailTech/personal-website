@@ -1,0 +1,65 @@
+---
+interface Props {
+    placement?: 'home' | 'section' | 'footer';
+}
+
+const { placement = 'section' } = Astro.props;
+---
+
+<div class:list={['banner-ad', placement]} aria-label="广告">
+    <ins
+        class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-8610909763373370"
+        data-ad-slot="6656224441"
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+    ></ins>
+</div>
+
+<script is:inline>
+    try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (error) {
+        console.warn('AdSense 横幅广告加载失败', error);
+    }
+</script>
+
+<style>
+    .banner-ad {
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .banner-ad.home {
+        margin-top: 2.5rem;
+    }
+
+    .banner-ad.section {
+        margin-bottom: 3rem;
+    }
+
+    .banner-ad.footer {
+        max-width: var(--site-content-width);
+        width: calc(100% - var(--site-page-gutter-total));
+        margin: 2rem auto 1rem;
+    }
+
+    .banner-ad :global(.adsbygoogle) {
+        width: 100%;
+    }
+
+    @media (max-width: 900px) {
+        .banner-ad.home {
+            margin-top: 2rem;
+        }
+
+        .banner-ad.section {
+            margin-bottom: 2rem;
+        }
+
+        .banner-ad.footer {
+            margin-top: 1rem;
+        }
+    }
+</style>

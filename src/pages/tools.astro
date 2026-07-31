@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
+import BannerAd from '../components/BannerAd.astro';
 
 const tools = [
     {
@@ -51,6 +52,8 @@ const tools = [
             <p class="subtitle">简单、高效的在线工具集合</p>
         </section>
 
+        <BannerAd />
+
         <div class="tools-grid">
             {tools.map((tool) => (
                 <a href={tool.url} class="tool-card">
@@ -77,7 +80,7 @@ const tools = [
 
     #tools-hero {
         text-align: center;
-        margin-bottom: 3rem;
+        margin-bottom: 1.5rem;
         animation: fadeInUp 0.8s ease-out;
     }
 
