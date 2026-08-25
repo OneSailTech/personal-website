@@ -1,290 +1,327 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import Nav from '../../components/Nav.astro';
+import ToolShell from '../../components/ToolShell.astro';
 ---
 
-<Layout title="颜色转换 - XIE YIFAN" description="HEX、RGB、HSL 颜色格式互相转换">
-    <Nav active="工具" />
-
-    <main>
-        <div class="back-link-wrapper">
-            <a href="/tools" class="back-link">← 返回工具列表</a>
+<ToolShell
+    label="TOOL · COLOR"
+    title="颜色转换"
+    subtitle="HEX、RGB、HSL 三种写法实时互转，改任意一栏另两栏立刻跟上。复制出来的就是可以直接粘进 CSS 的形式。"
+    description="HEX、RGB、HSL 颜色格式互相转换"
+>
+    <section class="t-panel">
+        <div class="swatch" id="swatch">
+            <span class="swatch-value" id="swatch-value">#2563EB</span>
         </div>
 
-        <section id="tool-hero">
-            <h1>颜色转换</h1>
-            <p class="subtitle">HEX、RGB、HSL 颜色格式互相转换</p>
-        </section>
-
-        <div class="tool-container">
-            <div class="color-preview" id="color-preview"></div>
-
-            <div class="input-group">
-                <label for="hex-input">HEX：</label>
-                <input type="text" id="hex-input" placeholder="#2563eb" oninput="convertFromHex()" />
+        <div class="t-row">
+            <div class="t-field">
+                <label for="hex">HEX</label>
+                <input
+                    class="t-input"
+                    id="hex"
+                    type="text"
+                    spellcheck="false"
+                    autocomplete="off"
+                    placeholder="#2563eb"
+                />
             </div>
 
-            <div class="input-group">
-                <label for="rgb-input">RGB：</label>
-                <input type="text" id="rgb-input" placeholder="37, 99, 235" oninput="convertFromRGB()" />
+            <div class="t-field">
+                <label for="rgb">RGB</label>
+                <input
+                    class="t-input"
+                    id="rgb"
+                    type="text"
+                    spellcheck="false"
+                    autocomplete="off"
+                    placeholder="rgb(37, 99, 235)"
+                />
             </div>
 
-            <div class="input-group">
-                <label for="hsl-input">HSL：</label>
-                <input type="text" id="hsl-input" placeholder="217, 91%, 53%" oninput="convertFromHSL()" />
-            </div>
-
-            <div class="copy-buttons">
-                <button class="copy-btn" onclick="copyValue('hex')">复制 HEX</button>
-                <button class="copy-btn" onclick="copyValue('rgb')">复制 RGB</button>
-                <button class="copy-btn" onclick="copyValue('hsl')">复制 HSL</button>
+            <div class="t-field">
+                <label for="hsl">HSL</label>
+                <input
+                    class="t-input"
+                    id="hsl"
+                    type="text"
+                    spellcheck="false"
+                    autocomplete="off"
+                    placeholder="hsl(217, 84%, 53%)"
+                />
             </div>
         </div>
-    </main>
-</Layout>
+        <div class="t-field picker-field">
+            <label for="picker">取色器</label>
+            <input class="t-color" type="color" id="picker" value="#2563eb" />
+            <p class="t-hint">三栏都能容错：带不带 # 、带不带 rgb() 都认。</p>
+        </div>
 
-<script is:inline>
-function hexToRgb(hex) {
-    hex = hex.replace('#', '');
-    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
-    const num = parseInt(hex, 16);
-    if (isNaN(num)) return null;
-    return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
-}
+        <div class="t-actions">
+            <button class="u-btn u-btn--ghost" id="copy-hex" type="button">复制 HEX</button>
+            <button class="u-btn u-btn--ghost" id="copy-rgb" type="button">复制 RGB</button>
+            <button class="u-btn u-btn--ghost" id="copy-hsl" type="button">复制 HSL</button>
+        </div>
 
-function rgbToHsl(r, g, b) {
-    r /= 255; g /= 255; b /= 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h, s, l = (max + min) / 2;
-
-    if (max === min) { h = s = 0; }
-    else {
-        const d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-            case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-            case g: h = ((b - r) / d + 2) / 6; break;
-            case b: h = ((r - g) / d + 4) / 6; break;
-        }
-    }
-    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
-}
-
-function hslToRgb(h, s, l) {
-    h /= 360; s /= 100; l /= 100;
-    let r, g, b;
-    if (s === 0) { r = g = b = l; }
-    else {
-        const hue2rgb = (p, q, t) => {
-            if (t < 0) t += 1;
-            if (t > 1) t -= 1;
-            if (t < 1/6) return p + (q - p) * 6 * t;
-            if (t < 1/2) return q;
-            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-            return p;
-        };
-        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        const p = 2 * l - q;
-        r = hue2rgb(p, q, h + 1/3);
-        g = hue2rgb(p, q, h);
-        b = hue2rgb(p, q, h - 1/3);
-    }
-    return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
-}
-
-function rgbToHex(r, g, b) {
-    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
-}
-
-function updatePreview(r, g, b) {
-    document.getElementById('color-preview').style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-}
-
-function convertFromHex() {
-    const hex = document.getElementById('hex-input').value.trim();
-    const rgb = hexToRgb(hex);
-    if (!rgb) return;
-    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
-    document.getElementById('rgb-input').value = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
-    document.getElementById('hsl-input').value = `${hsl.h}, ${hsl.s}%, ${hsl.l}%`;
-    updatePreview(rgb.r, rgb.g, rgb.b);
-}
-
-function convertFromRGB() {
-    const input = document.getElementById('rgb-input').value.trim();
-    const match = input.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
-    if (!match) return;
-    const r = parseInt(match[1]), g = parseInt(match[2]), b = parseInt(match[3]);
-    const hex = rgbToHex(r, g, b);
-    const hsl = rgbToHsl(r, g, b);
-    document.getElementById('hex-input').value = hex;
-    document.getElementById('hsl-input').value = `${hsl.h}, ${hsl.s}%, ${hsl.l}%`;
-    updatePreview(r, g, b);
-}
-
-function convertFromHSL() {
-    const input = document.getElementById('hsl-input').value.trim();
-    const match = input.match(/(\d+)\s*,\s*(\d+)%?\s*,\s*(\d+)%?/);
-    if (!match) return;
-    const h = parseInt(match[1]), s = parseInt(match[2]), l = parseInt(match[3]);
-    const rgb = hslToRgb(h, s, l);
-    const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
-    document.getElementById('hex-input').value = hex;
-    document.getElementById('rgb-input').value = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
-    updatePreview(rgb.r, rgb.g, rgb.b);
-}
-
-function copyValue(type) {
-    let value = '';
-    if (type === 'hex') value = document.getElementById('hex-input').value;
-    else if (type === 'rgb') value = document.getElementById('rgb-input').value;
-    else if (type === 'hsl') value = document.getElementById('hsl-input').value;
-    if (value) {
-        navigator.clipboard.writeText(value);
-        const btn = event.target;
-        const original = btn.textContent;
-        btn.textContent = '已复制！';
-        setTimeout(() => btn.textContent = original, 1500);
-    }
-}
-
-document.getElementById('hex-input').value = '#2563eb';
-convertFromHex();
-</script>
+        <p class="t-status" id="status" role="status" aria-live="polite"></p>
+    </section>
+</ToolShell>
 
 <style>
-    main {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 2rem 0 4rem;
-        max-width: var(--site-narrow-width);
-        margin: 0 auto;
-        width: calc(100% - var(--site-page-gutter-total));
+    .swatch {
+        display: grid;
+        place-items: center;
+        min-height: 8.5rem;
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-md);
+        /* 换色时过一下渡，不要硬跳 */
+        transition: background-color var(--dur-base) var(--ease-out);
     }
 
-    .back-link-wrapper {
-        width: 100%;
-        padding-bottom: 1.5rem;
-        animation: fadeInUp 0.8s ease-out;
+    .swatch-value {
+        font-family: var(--font-mono);
+        font-size: var(--fs-h3);
+        letter-spacing: 0.05em;
+        font-weight: 500;
     }
 
-    .back-link {
-        color: #2563eb;
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 600;
-        display: inline-block;
-        transition: color 0.3s;
+    /* 叠字颜色跟着底色的相对亮度走：浅底用黑字，深底用白字 */
+    .swatch[data-tone='dark'] .swatch-value {
+        color: rgba(0, 0, 0, 0.78);
     }
 
-    .back-link:hover {
-        color: #1d4ed8;
+    .swatch[data-tone='light'] .swatch-value {
+        color: rgba(255, 255, 255, 0.95);
     }
 
-    #tool-hero {
-        text-align: center;
-        margin-bottom: 3rem;
-        animation: fadeInUp 0.8s ease-out 0.1s both;
+    /* 取色器是个 42px 高的色块，铺满一整行会显得没道理 */
+    .picker-field {
+        max-width: 13rem;
     }
 
-    #tool-hero h1 {
-        font-size: clamp(2rem, 5vw, 3rem);
-        font-weight: 900;
-        letter-spacing: -1px;
-        margin-bottom: 0.8rem;
-        color: #000;
-    }
-
-    .subtitle {
-        font-size: 1.1rem;
-        color: #666;
-    }
-
-    .tool-container {
-        width: 100%;
-        animation: fadeInUp 0.8s ease-out 0.2s both;
-    }
-
-    .color-preview {
-        width: 100%;
-        height: 120px;
-        border-radius: 16px;
-        margin-bottom: 2rem;
-        border: 1px solid #eee;
-        transition: background-color 0.3s;
-        box-shadow: var(--shadow-card);
-    }
-
-    .input-group {
-        margin-bottom: 1.2rem;
-    }
-
-    .input-group label {
-        display: block;
-        font-size: 0.95rem;
-        color: #666;
-        margin-bottom: 0.5rem;
-    }
-
-    .input-group input {
-        width: 100%;
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 0.8rem 1rem;
-        color: #000;
-        font-size: 0.95rem;
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    }
-
-    .input-group input:focus {
-        outline: none;
-        border-color: #2563eb;
-    }
-
-    .copy-buttons {
-        display: flex;
-        gap: 0.8rem;
-        margin-top: 1.5rem;
-    }
-
-    .copy-btn {
-        flex: 1;
-        padding: 0.8rem;
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        color: #333;
-        font-size: 0.9rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: var(--shadow-button-neutral);
-    }
-
-    .copy-btn:hover {
-        background: #2563eb;
-        border-color: #2563eb;
-        color: #fff;
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-button-hover);
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
+    @media (prefers-reduced-motion: reduce) {
+        .swatch {
+            transition: none;
         }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @media (max-width: 900px) {
-        main { padding: 1.5rem 0 3rem; }
-        #tool-hero h1 { font-size: 2rem; }
-        .copy-buttons { flex-direction: column; }
     }
 </style>
+<script>
+    import { copyText } from '../../scripts/copy';
+
+    interface RGB {
+        r: number;
+        g: number;
+        b: number;
+    }
+
+    interface HSL {
+        h: number;
+        s: number;
+        l: number;
+    }
+
+    const round = (n: number) => Math.round(n);
+    const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
+    const byte = (n: number) => clamp(round(n), 0, 255);
+
+    // ---------- 数值互转 ----------
+
+    function toHex({ r, g, b }: RGB): string {
+        return `#${[r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+    }
+
+    function toRgbText({ r, g, b }: RGB): string {
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    function toHslText({ h, s, l }: HSL): string {
+        return `hsl(${h}, ${s}%, ${l}%)`;
+    }
+
+    function rgbToHsl({ r, g, b }: RGB): HSL {
+        const rn = r / 255;
+        const gn = g / 255;
+        const bn = b / 255;
+        const max = Math.max(rn, gn, bn);
+        const min = Math.min(rn, gn, bn);
+        const span = max - min;
+        const l = (max + min) / 2;
+
+        let h = 0;
+        if (span !== 0) {
+            if (max === rn) h = ((gn - bn) / span) % 6;
+            else if (max === gn) h = (bn - rn) / span + 2;
+            else h = (rn - gn) / span + 4;
+            h *= 60;
+            if (h < 0) h += 360;
+        }
+
+        // 灰色的饱和度按定义就是 0，不必再算
+        const s = span === 0 ? 0 : span / (1 - Math.abs(2 * l - 1));
+        return { h: round(h) % 360, s: round(s * 100), l: round(l * 100) };
+    }
+
+    function hslToRgb({ h, s, l }: HSL): RGB {
+        const hn = ((h % 360) + 360) % 360;
+        const sn = clamp(s, 0, 100) / 100;
+        const ln = clamp(l, 0, 100) / 100;
+
+        const c = (1 - Math.abs(2 * ln - 1)) * sn;
+        const x = c * (1 - Math.abs(((hn / 60) % 2) - 1));
+        const m = ln - c / 2;
+
+        const sector = Math.floor(hn / 60) % 6;
+        const table: [number, number, number][] = [
+            [c, x, 0],
+            [x, c, 0],
+            [0, c, x],
+            [0, x, c],
+            [x, 0, c],
+            [c, 0, x],
+        ];
+        const [r, g, b] = table[sector];
+        return { r: byte((r + m) * 255), g: byte((g + m) * 255), b: byte((b + m) * 255) };
+    }
+
+    /** 相对亮度（WCAG）。用它决定色块上的字用黑还是白，而不是简单看 R+G+B。 */
+    function luminance({ r, g, b }: RGB): number {
+        const channel = (v: number) => {
+            const n = v / 255;
+            return n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+        };
+        return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+    }
+
+    // ---------- 解析：三栏都尽量容错 ----------
+
+    function parseHex(text: string): RGB | null {
+        const raw = text.trim().replace(/^#/, '');
+        if (!/^[0-9a-f]+$/i.test(raw)) return null;
+
+        let hex = raw;
+        // #abc 与 #abcf 都是简写，各位翻倍展开；带 alpha 的第四位直接丢掉
+        if (hex.length === 3 || hex.length === 4) {
+            hex = [...hex.slice(0, 3)].map((c) => c + c).join('');
+        } else if (hex.length === 8) {
+            hex = hex.slice(0, 6);
+        }
+        if (hex.length !== 6) return null;
+
+        return {
+            r: parseInt(hex.slice(0, 2), 16),
+            g: parseInt(hex.slice(2, 4), 16),
+            b: parseInt(hex.slice(4, 6), 16),
+        };
+    }
+
+    /** 抓出文本里的数字，并记下它后面有没有百分号 */
+    function numbers(text: string): { value: number; percent: boolean }[] {
+        return [...text.matchAll(/(-?\d*\.?\d+)\s*(%?)/g)]
+            .map((m) => ({ value: parseFloat(m[1]), percent: m[2] === '%' }))
+            .filter((n) => Number.isFinite(n.value));
+    }
+
+    function parseRgb(text: string): RGB | null {
+        const parts = numbers(text);
+        if (parts.length < 3) return null;
+        // rgb() 里三个通道也允许写成百分比
+        const [r, g, b] = parts.slice(0, 3).map((n) => byte(n.percent ? n.value * 2.55 : n.value));
+        return { r, g, b };
+    }
+
+    function parseHsl(text: string): RGB | null {
+        const parts = numbers(text);
+        if (parts.length < 3) return null;
+        return hslToRgb({ h: parts[0].value, s: parts[1].value, l: parts[2].value });
+    }
+
+    // ---------- 页面 ----------
+
+    const swatch = document.getElementById('swatch') as HTMLElement;
+    const swatchValue = document.getElementById('swatch-value') as HTMLElement;
+    const hexField = document.getElementById('hex') as HTMLInputElement;
+    const rgbField = document.getElementById('rgb') as HTMLInputElement;
+    const hslField = document.getElementById('hsl') as HTMLInputElement;
+    const picker = document.getElementById('picker') as HTMLInputElement;
+    const statusEl = document.getElementById('status') as HTMLElement;
+
+    type Kind = 'done' | 'warn' | 'error' | 'idle';
+
+    function say(kind: Kind, text: string) {
+        statusEl.className = 't-status';
+        if (kind !== 'idle') statusEl.classList.add(`is-${kind}`);
+        statusEl.textContent = text;
+    }
+
+    let current: RGB = { r: 37, g: 99, b: 235 };
+
+    /**
+     * 把当前颜色写回界面。source 是用户正在输入的那一栏——不回写它，
+     * 否则光标会被顶到末尾，"#25" 还没打完就被补成 "#252525"。
+     */
+    function render(color: RGB, source?: HTMLInputElement) {
+        current = color;
+        const hex = toHex(color);
+        const hsl = rgbToHsl(color);
+
+        if (source !== hexField) hexField.value = hex;
+        if (source !== rgbField) rgbField.value = toRgbText(color);
+        if (source !== hslField) hslField.value = toHslText(hsl);
+
+        picker.value = hex.toLowerCase();
+        swatch.style.backgroundColor = hex;
+        swatchValue.textContent = hex;
+        // 亮底配深字，暗底配浅字；0.4 是实测下来两边都还舒服的分界
+        swatch.dataset.tone = luminance(color) > 0.4 ? 'dark' : 'light';
+    }
+
+    function wire(field: HTMLInputElement, parse: (text: string) => RGB | null, name: string) {
+        field.addEventListener('input', () => {
+            const text = field.value.trim();
+            if (!text) {
+                say('idle', '');
+                return;
+            }
+            const parsed = parse(text);
+            if (!parsed) {
+                say('warn', `${name} 还读不出来，继续输入`);
+                return;
+            }
+            say('idle', '');
+            render(parsed, field);
+        });
+
+        // 失焦时把这一栏也补成规范写法：输入期间不动它，离开了就该整齐
+        field.addEventListener('blur', () => {
+            if (field.value.trim()) render(current);
+        });
+    }
+
+    wire(hexField, parseHex, 'HEX');
+    wire(rgbField, parseRgb, 'RGB');
+    wire(hslField, parseHsl, 'HSL');
+
+    // type=color 是连续拖动的，input 事件跟着拖，反馈才是实时的（§1）
+    picker.addEventListener('input', () => {
+        const parsed = parseHex(picker.value);
+        if (parsed) {
+            render(parsed);
+            say('idle', '');
+        }
+    });
+
+    const copies: [string, () => string][] = [
+        ['copy-hex', () => toHex(current)],
+        ['copy-rgb', () => toRgbText(current)],
+        ['copy-hsl', () => toHslText(rgbToHsl(current))],
+    ];
+
+    for (const [id, get] of copies) {
+        document.getElementById(id)!.addEventListener('click', async () => {
+            const value = get();
+            const ok = await copyText(value);
+            say(ok ? 'done' : 'error', ok ? `已复制 ${value}` : '复制失败，手动选中复制吧');
+        });
+    }
+
+    render(current);
+</script>

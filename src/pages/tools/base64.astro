@@ -1,506 +1,354 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import Nav from '../../components/Nav.astro';
+import ToolShell from '../../components/ToolShell.astro';
 ---
 
-<Layout title="Base64 编解码 - XIE YIFAN" description="Base64 编码与解码工具，支持文本和图片">
-    <Nav active="工具" />
+<ToolShell
+    label="TOOL · BASE64"
+    title="Base64 编解码"
+    subtitle="文本与图片的 Base64 互转。全部在你的浏览器里完成，内容不会上传到任何服务器。"
+    description="Base64 编码与解码工具，支持文本和图片"
+>
+    <div class="t-segment" role="tablist" aria-label="编解码对象">
+        <button id="tab-text" type="button" role="tab" aria-selected="true" aria-controls="mode-text">
+            文本
+        </button>
+        <button id="tab-image" type="button" role="tab" aria-selected="false" aria-controls="mode-image">
+            图片
+        </button>
+    </div>
 
-    <main>
-        <div class="back-link-wrapper">
-            <a href="/tools" class="back-link">← 返回工具列表</a>
+    <section class="t-panel" id="mode-text" role="tabpanel" aria-labelledby="tab-text">
+        <div class="t-row">
+            <div class="t-field">
+                <label for="input-text">原文 / BASE64</label>
+                <textarea
+                    class="t-textarea"
+                    id="input-text"
+                    placeholder="输入要编码的文本，或粘贴一段 Base64"
+                ></textarea>
+            </div>
+
+            <div class="t-field">
+                <label for="output-text">结果</label>
+                <textarea
+                    class="t-textarea"
+                    id="output-text"
+                    readonly
+                    placeholder="结果会出现在这里"
+                ></textarea>
+            </div>
         </div>
 
-        <section id="tool-hero">
-            <h1>Base64 编解码</h1>
-            <p class="subtitle">支持文本和图片的 Base64 编码与解码</p>
+        <div class="t-actions">
+            <button class="u-btn u-btn--primary" id="encode" type="button">编码</button>
+            <button class="u-btn u-btn--ghost" id="decode" type="button">解码</button>
+            <button class="u-btn u-btn--ghost" id="copy-text" type="button">复制结果</button>
+            <button class="u-btn u-btn--ghost" id="clear-text" type="button">清空</button>
+        </div>
+
+        <p class="t-status" id="status-text" role="status" aria-live="polite"></p>
+    </section>
+    <div class="stack" id="mode-image" role="tabpanel" aria-labelledby="tab-image" hidden>
+        <div class="t-drop" id="drop" role="button" tabindex="0" aria-label="选择或拖入图片">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="2.5"></rect>
+                <circle cx="8.5" cy="8.5" r="1.4"></circle>
+                <path d="M21 15l-5-5L5 21"></path>
+            </svg>
+            <p class="t-drop-title">点击选择，或把图片拖进来</p>
+            <p class="t-hint">选好就直接给出 data:image/... 形式的 Base64</p>
+            <input type="file" id="image-input" accept="image/*" hidden />
+        </div>
+
+        <section class="t-panel" id="encode-panel" hidden>
+            <div class="t-row">
+                <div class="t-field">
+                    <p class="t-legend">预览 · <span id="image-name">—</span></p>
+                    <div class="t-preview">
+                        <img id="image-preview" alt="待编码图片的预览" />
+                    </div>
+                </div>
+
+                <div class="t-field">
+                    <label for="image-base64">BASE64 结果</label>
+                    <textarea class="t-textarea" id="image-base64" readonly></textarea>
+                    <p class="t-hint" id="image-size"></p>
+                </div>
+            </div>
+
+            <div class="t-actions">
+                <button class="u-btn u-btn--primary" id="copy-image" type="button">复制 Base64</button>
+                <button class="u-btn u-btn--ghost" id="clear-image" type="button">换一张</button>
+            </div>
+
+            <p class="t-status" id="status-image" role="status" aria-live="polite"></p>
         </section>
 
-        <div class="tool-container">
-            <div class="mode-tabs">
-                <button class="mode-tab active" data-mode="text" onclick="switchMode('text')">文本模式</button>
-                <button class="mode-tab" data-mode="image" onclick="switchMode('image')">图片模式</button>
+        <section class="t-panel">
+            <div class="t-field">
+                <label for="decode-input">BASE64 转回图片</label>
+                <textarea
+                    class="t-textarea"
+                    id="decode-input"
+                    placeholder="粘贴 data:image/... 或纯 Base64 字符串"
+                ></textarea>
+                <p class="t-hint">没有 data: 前缀时按 PNG 处理。</p>
             </div>
 
-            <div id="text-mode">
-                <div class="input-group">
-                    <label for="input-text">输入内容：</label>
-                    <textarea id="input-text" placeholder="输入要编码的文本，或粘贴 Base64 字符串..." rows="6"></textarea>
-                </div>
-
-                <div class="action-buttons">
-                    <button class="action-btn" onclick="encodeText()">编码 →</button>
-                    <button class="action-btn" onclick="decodeText()">← 解码</button>
-                    <button class="action-btn secondary" onclick="copyResult('text')">复制结果</button>
-                    <button class="action-btn secondary" onclick="clearText()">清空</button>
-                </div>
-
-                <div class="input-group">
-                    <label for="output-text">输出结果：</label>
-                    <textarea id="output-text" readonly placeholder="结果将显示在这里..." rows="6"></textarea>
-                </div>
+            <div class="t-actions">
+                <button class="u-btn u-btn--primary" id="decode-image" type="button">解码为图片</button>
+                <button class="u-btn u-btn--ghost" id="download-image" type="button" hidden>下载</button>
             </div>
 
-            <div id="image-mode" style="display: none;">
-                <div class="encode-section">
-                    <div class="upload-area" id="upload-area">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                            <polyline points="21 15 16 10 5 21"></polyline>
-                        </svg>
-                        <p>点击或拖拽图片到此处进行编码</p>
-                        <span class="upload-hint">支持常见图片格式</span>
-                        <input type="file" id="image-input" accept="image/*" hidden />
-                    </div>
-
-                    <div class="image-actions" id="image-actions" style="display: none;">
-                        <div class="image-preview-wrapper">
-                            <img id="image-preview" alt="预览" />
-                        </div>
-
-                        <div class="action-buttons">
-                            <button class="action-btn" onclick="encodeImage()">编码为 Base64</button>
-                            <button class="action-btn secondary" onclick="copyResult('image')">复制 Base64</button>
-                            <button class="action-btn secondary" onclick="clearImage()">清空</button>
-                        </div>
-
-                        <div class="input-group">
-                            <label for="image-base64-output">Base64 结果：</label>
-                            <textarea id="image-base64-output" readonly placeholder="图片 Base64 将显示在这里..." rows="4"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="decode-section">
-                    <h3 class="section-title">Base64 解码图片</h3>
-                    <div class="input-group">
-                        <label for="decode-base64-input">粘贴 Base64 字符串：</label>
-                        <textarea id="decode-base64-input" placeholder="粘贴 data:image/... 或纯 Base64 字符串..." rows="4"></textarea>
-                    </div>
-                    <button class="action-btn decode-btn" onclick="decodeImage()">解码图片 →</button>
-                    <div class="decoded-image-wrapper" id="decoded-image-wrapper" style="display: none;">
-                        <img id="decoded-image" alt="解码结果" />
-                        <a id="download-decoded" class="download-btn" download="decoded-image.png">下载解码图片</a>
-                    </div>
-                </div>
+            <div class="t-preview" id="decoded-wrap" hidden>
+                <img id="decoded-image" alt="解码得到的图片" />
             </div>
-        </div>
-    </main>
-</Layout>
 
-<script is:inline>
-let currentMode = 'text';
-let currentImageFile = null;
-
-function switchMode(mode) {
-    currentMode = mode;
-    document.querySelectorAll('.mode-tab').forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.mode === mode);
-    });
-    document.getElementById('text-mode').style.display = mode === 'text' ? 'block' : 'none';
-    document.getElementById('image-mode').style.display = mode === 'image' ? 'block' : 'none';
-}
-
-function encodeText() {
-    const input = document.getElementById('input-text').value;
-    try {
-        const encoded = btoa(unescape(encodeURIComponent(input)));
-        document.getElementById('output-text').value = encoded;
-    } catch (e) {
-        document.getElementById('output-text').value = '编码失败：' + e.message;
-    }
-}
-
-function decodeText() {
-    const input = document.getElementById('input-text').value.trim();
-    try {
-        const decoded = decodeURIComponent(escape(atob(input)));
-        document.getElementById('output-text').value = decoded;
-    } catch (e) {
-        document.getElementById('output-text').value = '解码失败：请检查输入是否为有效的 Base64 字符串';
-    }
-}
-
-function copyResult(type) {
-    let value = '';
-    if (type === 'text') value = document.getElementById('output-text').value;
-    else if (type === 'image') value = document.getElementById('image-base64-output').value;
-    if (value) {
-        navigator.clipboard.writeText(value);
-        const btn = event.target;
-        const original = btn.textContent;
-        btn.textContent = '已复制！';
-        setTimeout(() => btn.textContent = original, 1500);
-    }
-}
-
-function clearText() {
-    document.getElementById('input-text').value = '';
-    document.getElementById('output-text').value = '';
-}
-
-const uploadArea = document.getElementById('upload-area');
-const imageInput = document.getElementById('image-input');
-
-uploadArea.addEventListener('click', () => imageInput.click());
-
-uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.classList.add('drag-over');
-});
-
-uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
-
-uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.classList.remove('drag-over');
-    if (e.dataTransfer.files.length) handleImageFile(e.dataTransfer.files[0]);
-});
-
-imageInput.addEventListener('change', (e) => {
-    if (e.target.files.length) handleImageFile(e.target.files[0]);
-});
-
-function handleImageFile(file) {
-    if (!file.type.startsWith('image/')) return;
-    currentImageFile = file;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        document.getElementById('image-preview').src = e.target.result;
-        document.getElementById('upload-area').style.display = 'none';
-        document.getElementById('image-actions').style.display = 'block';
-        document.getElementById('image-base64-output').value = '';
-    };
-    reader.readAsDataURL(file);
-}
-
-function encodeImage() {
-    if (!currentImageFile) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        document.getElementById('image-base64-output').value = e.target.result;
-    };
-    reader.readAsDataURL(currentImageFile);
-}
-
-function decodeImage() {
-    let input = document.getElementById('decode-base64-input').value.trim();
-    if (!input) return;
-
-    if (!input.startsWith('data:image')) {
-        input = 'data:image/png;base64,' + input;
-    }
-
-    const wrapper = document.getElementById('decoded-image-wrapper');
-    const img = document.getElementById('decoded-image');
-    const downloadBtn = document.getElementById('download-decoded');
-
-    img.src = input;
-    img.onload = () => {
-        wrapper.style.display = 'block';
-        downloadBtn.href = input;
-    };
-    img.onerror = () => {
-        alert('解码失败，请检查 Base64 是否正确');
-    };
-}
-
-function clearImage() {
-    currentImageFile = null;
-    document.getElementById('image-preview').src = '';
-    document.getElementById('image-base64-output').value = '';
-    document.getElementById('decode-base64-input').value = '';
-    document.getElementById('decoded-image-wrapper').style.display = 'none';
-    document.getElementById('upload-area').style.display = 'block';
-    document.getElementById('image-actions').style.display = 'none';
-}
-</script>
+            <p class="t-status" id="status-decode" role="status" aria-live="polite"></p>
+        </section>
+    </div>
+</ToolShell>
 
 <style>
-    main {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 2rem 0 4rem;
-        max-width: var(--site-narrow-width);
-        margin: 0 auto;
-        width: calc(100% - var(--site-page-gutter-total));
-    }
-
-    .back-link-wrapper {
-        width: 100%;
-        padding-bottom: 1.5rem;
-        animation: fadeInUp 0.8s ease-out;
-    }
-
-    .back-link {
-        color: #2563eb;
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 600;
-        display: inline-block;
-        transition: color 0.3s;
-    }
-
-    .back-link:hover {
-        color: #1d4ed8;
-    }
-
-    #tool-hero {
-        text-align: center;
-        margin-bottom: 3rem;
-        animation: fadeInUp 0.8s ease-out 0.1s both;
-    }
-
-    #tool-hero h1 {
-        font-size: clamp(2rem, 5vw, 3rem);
-        font-weight: 900;
-        letter-spacing: -1px;
-        margin-bottom: 0.8rem;
-        color: #000;
-    }
-
-    .subtitle {
-        font-size: 1.1rem;
-        color: #666;
-    }
-
-    .tool-container {
-        width: 100%;
-        animation: fadeInUp 0.8s ease-out 0.2s both;
-    }
-
-    .mode-tabs {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .mode-tab {
-        flex: 1;
-        padding: 0.7rem;
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        color: #666;
-        font-size: 0.95rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: var(--shadow-button-neutral);
-    }
-
-    .mode-tab.active {
-        background: #2563eb;
-        border-color: #2563eb;
-        color: #fff;
-        box-shadow: var(--shadow-button);
-    }
-
-    .input-group {
-        margin-bottom: 1.5rem;
-    }
-
-    .input-group label {
-        display: block;
-        font-size: 0.95rem;
-        color: #666;
-        margin-bottom: 0.6rem;
-    }
-
-    .input-group textarea {
-        width: 100%;
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 1rem;
-        color: #000;
-        font-size: 0.95rem;
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-        resize: vertical;
-        line-height: 1.6;
-    }
-
-    .input-group textarea:focus {
-        outline: none;
-        border-color: #2563eb;
-    }
-
-    .action-buttons {
-        display: flex;
-        gap: 0.8rem;
-        margin-bottom: 1.5rem;
-        flex-wrap: wrap;
-    }
-
-    .action-btn {
-        flex: 1;
-        min-width: 100px;
-        padding: 0.8rem 1.2rem;
-        background: #2563eb;
-        border: none;
-        border-radius: 10px;
-        color: #fff;
-        font-size: 0.95rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: var(--shadow-button);
-    }
-
-    .action-btn:hover {
-        background: #1d4ed8;
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-button-hover);
-    }
-
-    .action-btn.secondary {
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        color: #333;
-        box-shadow: var(--shadow-button-neutral);
-    }
-
-    .action-btn.secondary:hover {
-        background: #f3f4f6;
-        box-shadow: var(--shadow-card);
-    }
-
-    .upload-area {
-        background: #f9fafb;
-        border: 2px dashed #d1d5db;
-        border-radius: 16px;
-        padding: 3rem 2rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow-card);
-    }
-
-    .upload-area:hover,
-    .upload-area.drag-over {
-        border-color: #2563eb;
-        background: #f0f4ff;
-        box-shadow: var(--shadow-card-hover);
-    }
-
-    .upload-area svg {
-        color: #999;
-        margin-bottom: 1rem;
-    }
-
-    .upload-area p {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
-        color: #333;
-    }
-
-    .upload-hint {
-        font-size: 0.85rem;
-        color: #999;
-    }
-
-    .image-preview-wrapper {
-        margin-bottom: 1.5rem;
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid #eee;
-        box-shadow: var(--shadow-card);
-    }
-
-    .image-preview-wrapper img {
-        width: 100%;
-        display: block;
-    }
-
-    .decode-section {
-        margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 1px solid #eee;
-    }
-
-    .section-title {
-        font-size: 1.1rem;
-        margin-bottom: 1.2rem;
-        color: #666;
-    }
-
-    .decode-section label {
-        display: block;
-        font-size: 0.95rem;
-        color: #666;
-        margin-bottom: 0.6rem;
-    }
-
-    .decode-section textarea {
-        width: 100%;
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 1rem;
-        color: #000;
-        font-size: 0.95rem;
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-        resize: vertical;
-        line-height: 1.6;
-    }
-
-    .decode-section textarea:focus {
-        outline: none;
-        border-color: #2563eb;
-    }
-
-    .decode-btn {
-        width: 100%;
-        margin-top: 0.8rem;
-    }
-
-    .decoded-image-wrapper {
-        margin-top: 1.5rem;
-        text-align: center;
-    }
-
-    .decoded-image-wrapper img {
-        max-width: 100%;
-        border-radius: 12px;
-        margin-bottom: 1rem;
-    }
-
-    .download-btn {
-        display: inline-block;
-        padding: 0.8rem 2rem;
-        background: #2563eb;
-        border-radius: 10px;
-        color: #fff;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.3s;
-        box-shadow: var(--shadow-button);
-    }
-
-    .download-btn:hover {
-        background: #1d4ed8;
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-button-hover);
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @media (max-width: 900px) {
-        main { padding: 1.5rem 0 3rem; }
-        #tool-hero h1 { font-size: 2rem; }
-        .action-buttons { flex-direction: column; }
-        .action-btn { min-width: auto; }
+    /* 图片模式里是三块并列的区域，间距跟 tool-body 保持同一档 */
+    .stack {
+        display: grid;
+        gap: var(--sp-5);
     }
 </style>
+<script>
+    import { copyText } from '../../scripts/copy';
+    import { downloadBlob, formatSize } from '../../scripts/download';
+
+    // §16：进行中 / 完成 / 提醒 / 错误 是四类反馈。三块区域各有自己的状态行，
+    // 用同一个工厂产出，措辞和样式才不会各写一套。
+    type Kind = 'busy' | 'done' | 'warn' | 'error' | 'idle';
+
+    function reporter(el: HTMLElement) {
+        return (kind: Kind, text: string) => {
+            el.className = 't-status';
+            if (kind !== 'idle') el.classList.add(`is-${kind}`);
+            el.textContent = text;
+        };
+    }
+
+    // ---------- 模式切换 ----------
+
+    type Mode = 'text' | 'image';
+    const MODES: Mode[] = ['text', 'image'];
+
+    const tabs: Record<Mode, HTMLButtonElement> = {
+        text: document.getElementById('tab-text') as HTMLButtonElement,
+        image: document.getElementById('tab-image') as HTMLButtonElement,
+    };
+
+    const panes: Record<Mode, HTMLElement> = {
+        text: document.getElementById('mode-text') as HTMLElement,
+        image: document.getElementById('mode-image') as HTMLElement,
+    };
+
+    for (const mode of MODES) {
+        tabs[mode].addEventListener('click', () => {
+            for (const other of MODES) {
+                tabs[other].setAttribute('aria-selected', String(other === mode));
+                panes[other].hidden = other !== mode;
+            }
+        });
+    }
+    // ---------- 文本 ----------
+
+    const inputText = document.getElementById('input-text') as HTMLTextAreaElement;
+    const outputText = document.getElementById('output-text') as HTMLTextAreaElement;
+    const sayText = reporter(document.getElementById('status-text') as HTMLElement);
+
+    // 原实现走的是 btoa(unescape(encodeURIComponent(s)))：unescape 早已废弃，
+    // 且对超出 BMP 的字符（emoji、部分生僻字）会算错。改成按 UTF-8 字节走。
+    function toBase64(text: string): string {
+        const bytes = new TextEncoder().encode(text);
+        let binary = '';
+        // 一次 fromCharCode 的实参个数有上限，长文本必须分块
+        const CHUNK = 0x8000;
+        for (let i = 0; i < bytes.length; i += CHUNK) {
+            binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+        }
+        return btoa(binary);
+    }
+
+    function fromBase64(value: string): string {
+        const binary = atob(value.replace(/\s+/g, ''));
+        const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+        // fatal：不是合法 UTF-8 就抛错，而不是把一串乱码当结果交出去
+        return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    }
+
+    document.getElementById('encode')!.addEventListener('click', () => {
+        if (!inputText.value) {
+            sayText('warn', '左边还没有内容');
+            return;
+        }
+        outputText.value = toBase64(inputText.value);
+        sayText('done', `已编码 ${inputText.value.length} 个字符`);
+    });
+
+    document.getElementById('decode')!.addEventListener('click', () => {
+        const value = inputText.value.trim();
+        if (!value) {
+            sayText('warn', '左边还没有内容');
+            return;
+        }
+        try {
+            outputText.value = fromBase64(value);
+            sayText('done', '已解码');
+        } catch {
+            outputText.value = '';
+            sayText('error', '这不是一段有效的 Base64 文本');
+        }
+    });
+    document.getElementById('copy-text')!.addEventListener('click', async () => {
+        if (!outputText.value) {
+            sayText('warn', '还没有结果可以复制');
+            return;
+        }
+        const ok = await copyText(outputText.value);
+        sayText(ok ? 'done' : 'error', ok ? '已复制到剪贴板' : '复制失败，手动选中复制吧');
+    });
+
+    document.getElementById('clear-text')!.addEventListener('click', () => {
+        inputText.value = '';
+        outputText.value = '';
+        sayText('idle', '');
+        inputText.focus();
+    });
+
+    // ---------- 图片 · 编码 ----------
+
+    const drop = document.getElementById('drop') as HTMLElement;
+    const imageInput = document.getElementById('image-input') as HTMLInputElement;
+    const encodePanel = document.getElementById('encode-panel') as HTMLElement;
+    const imageName = document.getElementById('image-name') as HTMLElement;
+    const imagePreview = document.getElementById('image-preview') as HTMLImageElement;
+    const imageBase64 = document.getElementById('image-base64') as HTMLTextAreaElement;
+    const imageSize = document.getElementById('image-size') as HTMLElement;
+    const sayImage = reporter(document.getElementById('status-image') as HTMLElement);
+
+    function takeImage(file: File | undefined) {
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            sayImage('warn', '这不是图片文件');
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            const dataUrl = String(reader.result);
+            imagePreview.src = dataUrl;
+            imageName.textContent = file.name;
+            imageBase64.value = dataUrl;
+            imageSize.textContent =
+                `原图 ${formatSize(file.size)} → 文本 ${formatSize(dataUrl.length)}` +
+                '，Base64 会比原文件大约三分之一。';
+            drop.hidden = true;
+            encodePanel.hidden = false;
+            sayImage('done', '已编码，可以直接复制');
+        };
+
+        reader.onerror = () => sayImage('error', '这个文件读不出来');
+        reader.readAsDataURL(file);
+    }
+    drop.addEventListener('click', () => imageInput.click());
+
+    drop.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            imageInput.click();
+        }
+    });
+
+    drop.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        drop.classList.add('is-over');
+    });
+
+    drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
+
+    drop.addEventListener('drop', (event) => {
+        event.preventDefault();
+        drop.classList.remove('is-over');
+        takeImage(event.dataTransfer?.files[0]);
+    });
+
+    imageInput.addEventListener('change', () => {
+        takeImage(imageInput.files?.[0]);
+        // 清空 value，否则再选同一个文件不会触发 change
+        imageInput.value = '';
+    });
+
+    document.getElementById('copy-image')!.addEventListener('click', async () => {
+        if (!imageBase64.value) return;
+        const ok = await copyText(imageBase64.value);
+        sayImage(ok ? 'done' : 'error', ok ? '已复制到剪贴板' : '复制失败，手动选中复制吧');
+    });
+
+    document.getElementById('clear-image')!.addEventListener('click', () => {
+        imagePreview.removeAttribute('src');
+        imageBase64.value = '';
+        imageName.textContent = '—';
+        imageSize.textContent = '';
+        encodePanel.hidden = true;
+        drop.hidden = false;
+        sayImage('idle', '');
+    });
+    // ---------- 图片 · 解码 ----------
+
+    const decodeInput = document.getElementById('decode-input') as HTMLTextAreaElement;
+    const decodedWrap = document.getElementById('decoded-wrap') as HTMLElement;
+    const decodedImage = document.getElementById('decoded-image') as HTMLImageElement;
+    const downloadBtn = document.getElementById('download-image') as HTMLButtonElement;
+    const sayDecode = reporter(document.getElementById('status-decode') as HTMLElement);
+
+    document.getElementById('decode-image')!.addEventListener('click', () => {
+        const raw = decodeInput.value.trim();
+        if (!raw) {
+            sayDecode('warn', '先粘贴一段 Base64');
+            return;
+        }
+
+        const src = raw.startsWith('data:')
+            ? raw
+            : `data:image/png;base64,${raw.replace(/\s+/g, '')}`;
+
+        // 先用一张离屏 Image 验，能解出来再挂到页面上。
+        // 原实现直接把结果塞进可见的 <img>，失败时会留一个破图图标，还弹 alert。
+        const probe = new Image();
+
+        probe.onload = () => {
+            decodedImage.src = src;
+            decodedWrap.hidden = false;
+            downloadBtn.hidden = false;
+            sayDecode('done', `解码成功 · ${probe.naturalWidth} × ${probe.naturalHeight}`);
+        };
+
+        probe.onerror = () => {
+            decodedWrap.hidden = true;
+            downloadBtn.hidden = true;
+            sayDecode('error', '解不出图片，检查一下 Base64 是否完整');
+        };
+
+        probe.src = src;
+    });
+
+    downloadBtn.addEventListener('click', async () => {
+        if (!decodedImage.src) return;
+        try {
+            // data: URL 交给 fetch 转 Blob，扩展名跟着真实 MIME 走，
+            // 不再像原来那样一律叫 decoded-image.png
+            const blob = await fetch(decodedImage.src).then((res) => res.blob());
+            const ext = (blob.type.split('/')[1] || 'png').replace(/\+xml$/, '');
+            downloadBlob(blob, `decoded.${ext}`);
+        } catch {
+            sayDecode('error', '导出失败，可以右键图片另存为');
+        }
+    });
+</script>
