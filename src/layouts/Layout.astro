@@ -1,4 +1,7 @@
 ---
+import '../styles/tokens.css';
+import '../styles/base.css';
+
 export interface Props {
     title?: string;
     description?: string;
@@ -8,9 +11,15 @@ export interface Props {
 const {
     title = 'XIE YIFAN',
     description = 'XIE YIFAN — 分享技术、设计与生活随笔',
-    image = '/favicon.webp',
+    image = '/profile.webp',
 } = Astro.props;
 
+// Astro.site 在 astro.config.mjs 配置 site 后才有值（域名待补，见配置里的 TODO）。
+// 未配置时退化为相对路径：本地与预览环境依然可用，只是分享卡片缺绝对地址。
+const canonical = Astro.site
+    ? new URL(Astro.url.pathname, Astro.site).href
+    : undefined;
+const ogImage = Astro.site ? new URL(image, Astro.site).href : image;
 ---
 
 <!doctype html>
@@ -23,83 +32,81 @@ const {
         <title>{title}</title>
         <meta name="description" content={description} />
         <meta name="generator" content="1Fan" />
+        {canonical && <link rel="canonical" href={canonical} />}
+
+        <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
 
         <meta property="og:type" content="website" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
+        <meta property="og:image" content={ogImage} />
         <meta property="og:locale" content="zh_CN" />
+        {canonical && <meta property="og:url" content={canonical} />}
 
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={ogImage} />
+
+        {/* 防闪白：必须同步阻塞执行，在首帧绘制前就把主题定下来。
+            不能加 async/defer，否则用户会先看到浅色再跳深色。 */}
+        <script is:inline>
+            try {
+                const saved = localStorage.getItem('theme');
+                if (saved === 'light' || saved === 'dark') {
+                    document.documentElement.dataset.theme = saved;
+                }
+            } catch (e) {
+                /* 隐私模式下 localStorage 不可用，跟随系统即可 */
+            }
+        </script>
     </head>
     <body>
+        <a class="skip-link" href="#main">跳到主内容</a>
         <slot />
+
         <footer class="site-footer">
-            <p>&copy; {new Date().getFullYear()} XIE YIFAN. All rights reserved.</p>
-            <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">赣ICP备2023013465号-3</a></p>
+            <div class="u-container footer-inner">
+                <p class="u-label">&copy; {new Date().getFullYear()} XIE YIFAN</p>
+                <a class="u-label beian" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">
+                    赣ICP备2023013465号-3
+                </a>
+            </div>
         </footer>
     </body>
 </html>
 
-<style is:global>
-    :root {
-        --site-content-width: 1100px;
-        --site-narrow-width: 900px;
-        --site-page-gutter-total: 2.5rem;
-        --shadow-card: 0 10px 30px rgba(15, 23, 42, 0.06);
-        --shadow-card-hover: 0 16px 36px rgba(37, 99, 235, 0.13);
-        --shadow-button: 0 8px 18px rgba(37, 99, 235, 0.18);
-        --shadow-button-hover: 0 12px 24px rgba(37, 99, 235, 0.25);
-        --shadow-button-neutral: 0 6px 16px rgba(15, 23, 42, 0.07);
-    }
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        outline: none;
-    }
-
-    html {
-        overflow-x: hidden;
-        scrollbar-gutter: stable;
-    }
-
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #999; }
-    * { scrollbar-width: thin; scrollbar-color: #ccc transparent; }
-
-    html,
-    body {
-        width: 100%;
-        min-height: 100%;
-        background-color: #ffffff;
-        color: #000000;
-        font-family: sans-serif;
-    }
-
+<style>
     .site-footer {
-        text-align: center;
-        padding: 2rem 1rem;
-        z-index: 10;
+        margin-top: var(--sp-10);
+        padding: var(--sp-6) 0 var(--sp-7);
+        border-top: 1px solid var(--hairline);
     }
 
-    .site-footer p {
-        color: #999;
-        font-size: 0.75rem;
-        margin: 0;
+    .footer-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--sp-4);
+        flex-wrap: wrap;
     }
 
-    .site-footer a {
-        color: #999;
-        text-decoration: none;
-        transition: color 0.2s;
+    .beian {
+        color: var(--text-3);
+        transition: color var(--dur-fast) var(--ease-out);
     }
 
-    .site-footer a:hover {
-        color: #2563eb;
+    .beian:hover {
+        color: var(--accent);
+    }
+
+    @media (max-width: 600px) {
+        .footer-inner {
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            gap: var(--sp-2);
+        }
     }
 </style>

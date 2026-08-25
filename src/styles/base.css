@@ -1,0 +1,437 @@
+/* ============================================================
+   Base — 全局重置、排版默认值、交互基元
+   只消费 tokens.css 的变量，不出现任何字面数值（除 0 与 1px）。
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    /* clip 不会创建滚动容器，因此不会破坏 position: sticky。
+       hidden 会——这正是原先关于页头像漂移的成因之一。 */
+    overflow-x: clip;
+    scrollbar-gutter: stable;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+}
+
+@supports not (overflow-x: clip) {
+    html {
+        overflow-x: hidden;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+body {
+    min-height: 100svh;
+    background-color: var(--bg);
+    color: var(--text-1);
+    font-family: var(--font-sans);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    letter-spacing: var(--ls-body);
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    transition: background-color var(--dur-base) var(--ease-out),
+        color var(--dur-base) var(--ease-out);
+}
+
+/* ---------- 排版（§15：字号 / 行高 / 字距成套） ---------- */
+
+h1,
+h2,
+h3,
+h4 {
+    font-weight: 600;
+    text-wrap: balance;
+}
+
+h1 {
+    font-size: var(--fs-h1);
+    line-height: var(--lh-h1);
+    letter-spacing: var(--ls-h1);
+}
+
+h2 {
+    font-size: var(--fs-h2);
+    line-height: var(--lh-h2);
+    letter-spacing: var(--ls-h2);
+}
+
+h3 {
+    font-size: var(--fs-h3);
+    line-height: var(--lh-h3);
+    letter-spacing: var(--ls-h3);
+}
+
+p {
+    text-wrap: pretty;
+}
+
+strong {
+    font-weight: 600;
+    color: var(--text-1);
+}
+
+code,
+kbd,
+samp,
+pre {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+    display: block;
+    max-width: 100%;
+}
+
+ul,
+ol {
+    list-style: none;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+}
+
+button {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out);
+}
+
+a:hover {
+    color: var(--accent-hover);
+}
+
+/* ---------- 焦点与选中 ----------
+   原先是 * { outline: none }，键盘用户完全看不到焦点。
+   改为只在键盘导航时显示焦点环，鼠标点击不显示。 */
+
+:focus {
+    outline: none;
+}
+
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: var(--r-sm);
+}
+
+::selection {
+    background: var(--accent-subtle);
+    color: var(--text-1);
+}
+
+/* 跳到主内容：键盘用户第一个 Tab 就能跳过导航（§16 寻路） */
+.skip-link {
+    position: absolute;
+    top: var(--sp-2);
+    left: var(--sp-2);
+    z-index: calc(var(--z-nav) + 10);
+    padding: var(--sp-2) var(--sp-4);
+    border-radius: var(--r-full);
+    background: var(--surface);
+    color: var(--text-1);
+    box-shadow: var(--shadow-2);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    transform: translateY(-200%);
+    transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.skip-link:focus-visible {
+    transform: translateY(0);
+}
+
+/* ---------- 滚动条 ---------- */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--hairline-strong);
+    border-radius: var(--r-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-3);
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--hairline-strong) transparent;
+}
+
+/* ---------- 布局基元 ---------- */
+
+.u-container {
+    width: 100%;
+    max-width: var(--w-content);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+}
+
+.u-narrow {
+    max-width: var(--w-narrow);
+}
+
+/* 等宽标签层：章节序号、日期、参数名。唯一用正字距的地方。 */
+.u-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+/* 章节标题：01 / 标题 —— 序号用信号色，标题用正文色 */
+.u-section-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-3);
+    padding-bottom: var(--sp-3);
+    margin-bottom: var(--sp-5);
+    border-bottom: 1px solid var(--hairline);
+}
+
+.u-section-head .idx {
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--ls-label);
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+.u-section-head .title {
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    color: var(--text-2);
+    font-weight: 500;
+}
+
+/* ---------- 按钮（§1：在按下时反馈，不是在松手时） ---------- */
+
+.u-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+    padding: 0.72rem var(--sp-6);
+    border-radius: var(--r-full);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    transition: transform var(--dur-press) var(--ease-out),
+        background-color var(--dur-fast) var(--ease-out),
+        border-color var(--dur-fast) var(--ease-out),
+        color var(--dur-fast) var(--ease-out);
+}
+
+.u-btn:active {
+    transform: scale(0.97);
+}
+
+.u-btn--primary {
+    background: var(--accent);
+    color: var(--text-on-accent);
+}
+
+.u-btn--primary:hover {
+    background: var(--accent-hover);
+    color: var(--text-on-accent);
+}
+
+.u-btn--primary:active {
+    background: var(--accent-pressed);
+}
+
+.u-btn--ghost {
+    border: 1px solid var(--hairline-strong);
+    color: var(--text-1);
+}
+
+.u-btn--ghost:hover {
+    background: var(--surface-2);
+    border-color: var(--text-3);
+    color: var(--text-1);
+}
+
+.u-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ---------- 卡片 ----------
+   静态时只有发丝边框，不铺阴影；抬起感留给悬停。 */
+
+.u-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    transition: transform var(--dur-base) var(--ease-spring),
+        border-color var(--dur-fast) var(--ease-out),
+        box-shadow var(--dur-base) var(--ease-out);
+}
+
+@media (hover: hover) {
+    .u-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--hairline-strong);
+        box-shadow: var(--shadow-3);
+    }
+}
+
+.u-card:active {
+    transform: scale(0.988);
+    transition-duration: var(--dur-press);
+}
+
+/* ---------- 标签 ---------- */
+
+.u-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--r-sm);
+    background: var(--accent-subtle);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.02em;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.u-tag--quiet {
+    background: var(--surface-2);
+    color: var(--text-2);
+}
+
+/* ---------- 入场动效 ----------
+   位移从原先的 20px 收到 8px，曲线换成临界阻尼弹簧。
+   非手势驱动，用 keyframes 是安全的（§3 只禁止手势动画用 keyframes）。 */
+
+@keyframes u-rise {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 8px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes u-fade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.u-rise {
+    animation: u-rise var(--dur-spring) var(--ease-spring) both;
+}
+
+.u-fade {
+    animation: u-fade var(--dur-slow) var(--ease-out) both;
+}
+
+/* 依次入场：交给 --i 控制延迟，不再为每个 nth-child 手写一条 */
+.u-stagger > * {
+    animation: u-rise var(--dur-spring) var(--ease-spring) both;
+    animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* 减弱动效：位移全部撤掉，只留淡入（§14） */
+@media (prefers-reduced-motion: reduce) {
+    @keyframes u-rise {
+        from {
+            opacity: 0;
+            transform: none;
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    .u-stagger > * {
+        animation-delay: 0ms;
+    }
+
+    .u-btn:active,
+    .u-card:active,
+    .u-card:hover {
+        transform: none;
+    }
+}
+
+/* ---------- 滚动边缘渐隐（§12：不用 1px 硬分割线） ---------- */
+
+.u-scroll-edge {
+    position: fixed;
+    inset: var(--nav-h) 0 auto 0;
+    height: var(--sp-6);
+    pointer-events: none;
+    z-index: calc(var(--z-nav) - 1);
+    background: linear-gradient(to bottom, var(--bg), transparent);
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-out);
+}
+
+.u-scroll-edge.is-visible {
+    opacity: 1;
+}
+
+
+
+
+

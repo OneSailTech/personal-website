@@ -1,0 +1,258 @@
+/* ============================================================
+   Design Tokens — 全站唯一的数值来源
+   改配色、间距、圆角、动效节奏，都只改这个文件。
+   命名按语义而非外观：--text-2 是"次要文字"，不是"灰色"。
+   ============================================================ */
+
+:root {
+    color-scheme: light;
+
+    /* ---------- 颜色 · 浅色 ---------- */
+    --bg: #fbfbfd;
+    --surface: #ffffff;
+    --surface-2: #f5f5f7;
+    --surface-sunken: #eeeef2;
+
+    --text-1: #1d1d1f;
+    --text-2: #6e6e73;
+    --text-3: #8e8e93;
+    --text-on-accent: #ffffff;
+
+    --hairline: rgba(0, 0, 0, 0.09);
+    --hairline-strong: rgba(0, 0, 0, 0.17);
+
+    --accent: #0071e3;
+    --accent-hover: #0077ed;
+    --accent-pressed: #0067cf;
+    --accent-subtle: rgba(0, 113, 227, 0.09);
+    --accent-ring: rgba(0, 113, 227, 0.4);
+
+    --success: #1d8f4e;
+    --warning: #b25000;
+    --danger: #d70015;
+
+    /* ---------- 材质（§12） ---------- */
+    --material-bg: rgba(251, 251, 253, 0.72);
+    --material-blur: blur(20px) saturate(180%);
+    --material-edge: rgba(255, 255, 255, 0.55);
+
+    /* ---------- 阴影：中性，无色偏 ---------- */
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-3: 0 14px 38px rgba(0, 0, 0, 0.1), 0 3px 10px rgba(0, 0, 0, 0.05);
+
+    /* ---------- 字体（§15） ---------- */
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro SC",
+        "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo,
+        Consolas, "Liberation Mono", monospace;
+
+    /* 字号 / 行高 / 字距成套定义：字距随字号变化，绝不全局一个值 */
+    --fs-display: clamp(2.75rem, 7vw, 5rem);
+    --lh-display: 1.04;
+    --ls-display: -0.032em;
+
+    --fs-h1: clamp(2rem, 4.5vw, 3.25rem);
+    --lh-h1: 1.08;
+    --ls-h1: -0.026em;
+
+    --fs-h2: clamp(1.5rem, 2.6vw, 2rem);
+    --lh-h2: 1.2;
+    --ls-h2: -0.02em;
+
+    --fs-h3: 1.1875rem;
+    --lh-h3: 1.35;
+    --ls-h3: -0.014em;
+
+    --fs-body: 1.0625rem;
+    --lh-body: 1.7;
+    --ls-body: 0;
+
+    --fs-sm: 0.9375rem;
+    --fs-xs: 0.8125rem;
+    --lh-tight: 1.5;
+
+    /* 等宽标签层：唯一使用正字距的地方 */
+    --fs-label: 0.75rem;
+    --ls-label: 0.09em;
+
+    /* ---------- 间距：4px 基准，全部 rem 以跟随用户字号 ---------- */
+    --sp-1: 0.25rem;
+    --sp-2: 0.5rem;
+    --sp-3: 0.75rem;
+    --sp-4: 1rem;
+    --sp-5: 1.5rem;
+    --sp-6: 2rem;
+    --sp-7: 2.5rem;
+    --sp-8: 3rem;
+    --sp-9: 4rem;
+    --sp-10: 5rem;
+    --sp-11: 6.5rem;
+    --sp-12: 8rem;
+
+    /* ---------- 圆角 ---------- */
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 18px;
+    --r-xl: 26px;
+    --r-full: 999px;
+
+    /* ---------- 动效（§4） ----------
+       --ease-spring 是临界阻尼弹簧（damping 1.0 / response 0.35）的采样，
+       用 linear() 编码：起步快、无过冲、末端平滑收敛。
+       过冲只留给带动量的手势，静态 UI 一律用这条。 */
+    --ease-spring: linear(
+        0, 0.194, 0.48, 0.697, 0.833, 0.911, 0.954, 0.977, 0.988, 0.994, 1
+    );
+    --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+    --dur-press: 110ms;
+    --dur-fast: 200ms;
+    --dur-base: 320ms;
+    --dur-spring: 450ms;
+    --dur-slow: 620ms;
+
+    /* ---------- 布局 ---------- */
+    --nav-h: 72px;
+    --w-content: 1120px;
+    --w-narrow: 760px;
+    --gutter: 1.5rem;
+
+    /* ---------- 层级 ---------- */
+    --z-nav: 100;
+    --z-overlay: 200;
+    --z-float: 90;
+
+    /* ---------- 过渡期兼容别名 ----------
+       尚未迁移的页面还在引用旧变量名。每迁完一个页面就少一处引用，
+       全部页面迁移完成后整块删除。 */
+    --site-content-width: var(--w-content);
+    --site-narrow-width: var(--w-narrow);
+    --site-page-gutter-total: calc(var(--gutter) * 2);
+    --shadow-card: var(--shadow-1);
+    --shadow-card-hover: var(--shadow-3);
+    --shadow-button: var(--shadow-1);
+    --shadow-button-hover: var(--shadow-2);
+    --shadow-button-neutral: var(--shadow-1);
+}
+
+/* ============================================================
+   深色：同一批变量名，另一套值。
+   页面样式只认 var(--x)，不写任何深色专用规则。
+   ============================================================ */
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --bg: #000000;
+    --surface: #141416;
+    --surface-2: #1d1d1f;
+    --surface-sunken: #0a0a0b;
+
+    --text-1: #f5f5f7;
+    --text-2: #a1a1a6;
+    --text-3: #7c7c80;
+    --text-on-accent: #ffffff;
+
+    --hairline: rgba(255, 255, 255, 0.12);
+    --hairline-strong: rgba(255, 255, 255, 0.24);
+
+    --accent: #2997ff;
+    --accent-hover: #47a6ff;
+    --accent-pressed: #1c86e8;
+    --accent-subtle: rgba(41, 151, 255, 0.15);
+    --accent-ring: rgba(41, 151, 255, 0.5);
+
+    --success: #30d158;
+    --warning: #ff9f0a;
+    --danger: #ff453a;
+
+    --material-bg: rgba(20, 20, 22, 0.68);
+    --material-edge: rgba(255, 255, 255, 0.1);
+
+    /* 纯黑背景上阴影不可见，改用更亮的边框承担层次 */
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.4);
+    --shadow-3: 0 14px 38px rgba(0, 0, 0, 0.65), 0 3px 10px rgba(0, 0, 0, 0.45);
+}
+
+/* 未手动选择时跟随系统 */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        color-scheme: dark;
+
+        --bg: #000000;
+        --surface: #141416;
+        --surface-2: #1d1d1f;
+        --surface-sunken: #0a0a0b;
+
+        --text-1: #f5f5f7;
+        --text-2: #a1a1a6;
+        --text-3: #7c7c80;
+
+        --hairline: rgba(255, 255, 255, 0.12);
+        --hairline-strong: rgba(255, 255, 255, 0.24);
+
+        --accent: #2997ff;
+        --accent-hover: #47a6ff;
+        --accent-pressed: #1c86e8;
+        --accent-subtle: rgba(41, 151, 255, 0.15);
+        --accent-ring: rgba(41, 151, 255, 0.5);
+
+        --success: #30d158;
+        --warning: #ff9f0a;
+        --danger: #ff453a;
+
+        --material-bg: rgba(20, 20, 22, 0.68);
+        --material-edge: rgba(255, 255, 255, 0.1);
+
+        --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+        --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.4);
+        --shadow-3: 0 14px 38px rgba(0, 0, 0, 0.65), 0 3px 10px rgba(0, 0, 0, 0.45);
+    }
+}
+
+/* ---------- 无障碍偏好（§14） ---------- */
+
+/* 降低透明度：材质变实，去掉模糊 */
+@media (prefers-reduced-transparency: reduce) {
+    :root {
+        --material-bg: #fbfbfd;
+        --material-blur: none;
+    }
+    :root[data-theme="dark"] {
+        --material-bg: #141416;
+    }
+}
+
+/* 高对比：边框加重，文字提到近实色 */
+@media (prefers-contrast: more) {
+    :root {
+        --hairline: rgba(0, 0, 0, 0.28);
+        --hairline-strong: rgba(0, 0, 0, 0.45);
+        --text-2: #4a4a4f;
+        --text-3: #5c5c61;
+        --material-bg: #ffffff;
+        --material-blur: none;
+    }
+    :root[data-theme="dark"] {
+        --hairline: rgba(255, 255, 255, 0.34);
+        --hairline-strong: rgba(255, 255, 255, 0.55);
+        --text-2: #d0d0d4;
+        --text-3: #b8b8bd;
+        --material-bg: #000000;
+    }
+}
+
+/* 减弱动效：时长压到接近瞬时，交给 base.css 关闭位移 */
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --dur-press: 1ms;
+        --dur-fast: 90ms;
+        --dur-base: 120ms;
+        --dur-spring: 120ms;
+        --dur-slow: 140ms;
+        --ease-spring: linear;
+    }
+}
