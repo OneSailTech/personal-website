@@ -410,6 +410,8 @@
 /* 分段切换（编码 / 解码这类二选一） */
 .t-segment {
     display: inline-flex;
+    /* 面板都是 grid 的子项，不写 justify-self 会被拉满一整行 */
+    justify-self: start;
     padding: 3px;
     border-radius: var(--r-full);
     background: var(--surface-2);
@@ -435,6 +437,54 @@
     background: var(--surface);
     color: var(--text-1);
     box-shadow: var(--shadow-1);
+}
+
+/* 折叠的原始日志：ffmpeg 这类工具的输出对排错有用，
+   但不该顶在状态行的位置抢注意力（§6 常用的放前面，细节收一层）。 */
+.t-log {
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    background: var(--surface-2);
+}
+
+.t-log > summary {
+    padding: var(--sp-3) var(--sp-4);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    cursor: pointer;
+    list-style: none;
+}
+
+.t-log > summary::-webkit-details-marker {
+    display: none;
+}
+
+.t-log > summary::before {
+    content: '＋ ';
+}
+
+.t-log[open] > summary::before {
+    content: '－ ';
+}
+
+.t-log > summary:hover {
+    color: var(--text-2);
+}
+
+.t-log-body {
+    max-height: 12rem;
+    overflow: auto;
+    padding: 0 var(--sp-4) var(--sp-4);
+    margin: 0;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 @media (prefers-reduced-motion: reduce) {
