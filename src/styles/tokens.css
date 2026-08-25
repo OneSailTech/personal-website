@@ -115,8 +115,20 @@
 
     /* ---------- 布局 ---------- */
     --nav-h: 72px;
+
+    /* 正文一行的目标宽度。中文的舒适区间是一行 40~50 字，
+       取 48rem ≈ 768px，在 17px 正文下约 45 个汉字。 */
+    --measure: 48rem;
+
+    /* 三档量度，按内容需要多宽来选，不按页面类型：
+       content 给网格与卡片列表；mid 给成组的控件（工具页两列能真的排成两列）；
+       narrow 给正文。
+       narrow 必须从 --measure 倒推：box-sizing 是 border-box，容器的
+       max-width 里含栏距，正文外面还套了一张有内边距的纸。原先直接写 760px，
+       减掉两侧栏距和纸面内边距只剩 692px，一行不到 41 个汉字——就是偏窄的原因。 */
     --w-content: 1120px;
-    --w-narrow: 760px;
+    --w-mid: 960px;
+    --w-narrow: calc(var(--measure) + var(--sp-7) * 2 + var(--gutter) * 2);
     --gutter: 1.5rem;
 
     /* ---------- 层级 ---------- */

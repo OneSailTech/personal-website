@@ -206,6 +206,10 @@ a:hover {
     padding-inline: var(--gutter);
 }
 
+.u-mid {
+    max-width: var(--w-mid);
+}
+
 .u-narrow {
     max-width: var(--w-narrow);
 }
