@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import Nav from '../../components/Nav.astro';
+import Tag from '../../components/Tag.astro';
 import '../../styles/markdown.css';
 
 export async function getStaticPaths() {
@@ -14,224 +15,283 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
+
+const date = post.data.date;
+const display = date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+});
+const iso = date.toISOString().slice(0, 10);
 ---
 
-<Layout title={`${post.data.title} - XIE YIFAN`} description={post.data.description}>
+<Layout title={`${post.data.title} — XIE YIFAN`} description={post.data.description}>
     <Nav active="文章" />
 
-    <main>
-        <div class="back-link-wrapper">
-            <a href="/posts" class="back-link" onclick="history.back(); return false;">← 返回</a>
-        </div>
-        <header class="post-header">
-            <h1>{post.data.title}</h1>
-            <p class="description">{post.data.description}</p>
-            <div class="post-meta">
-                <time>{post.data.date.toLocaleDateString('zh-CN')}</time>
-                {post.data.tags.map((tag) => (
-                    <span class="tag">{tag}</span>
-                ))}
+    {/* 阅读进度：纯 CSS 滚动驱动，不支持的浏览器就是一条不动的 0 宽度线 */}
+    <div class="progress" aria-hidden="true"><span class="progress-bar"></span></div>
+
+    <main id="main" class="u-container u-narrow">
+        <header class="head u-stagger">
+            <a class="back" href="/posts" style="--i:0">
+                <svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M9.5 4 5.5 8l4 4"></path>
+                </svg>
+                返回文章列表
+            </a>
+
+            <div class="meta" style="--i:1">
+                <time class="u-label" datetime={iso}>{display}</time>
+                {post.data.tags.map((tag) => <Tag>{tag}</Tag>)}
             </div>
+
+            <h1 style="--i:2">{post.data.title}</h1>
+            {post.data.description && <p class="desc" style="--i:3">{post.data.description}</p>}
         </header>
-        <article id="post-detail">
+
+        <article class="sheet u-rise">
             <div class="md-rendered">
                 <Content />
             </div>
-
-            <footer class="post-footer">
-                <a href="/posts" class="button primary" onclick="history.back(); return false;">返回</a>
-            </footer>
         </article>
+
+        <footer class="foot u-fade">
+            <a class="u-btn u-btn--ghost" href="/posts">返回文章列表</a>
+        </footer>
     </main>
 
-    <button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="返回顶部">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="18 15 12 9 6 15"></polyline>
+    <button id="back-to-top" type="button" aria-label="返回顶部" title="返回顶部">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 19V6M6 12l6-6 6 6"></path>
         </svg>
     </button>
 </Layout>
 
+<script>
+    // 原先这三处都是内联 onclick：返回按钮劫持成 history.back()（从外链直接进来时会
+    // 跳回上一个站点），回到顶部则无视减弱动效偏好。现在全部换成真实监听器。
+    const btn = document.getElementById('back-to-top');
+
+    if (btn) {
+        let ticking = false;
+
+        const sync = () => {
+            btn.classList.toggle('is-visible', window.scrollY > 400);
+            ticking = false;
+        };
+
+        window.addEventListener(
+            'scroll',
+            () => {
+                if (ticking) return;
+                ticking = true;
+                requestAnimationFrame(sync);
+            },
+            { passive: true }
+        );
+
+        sync();
+
+        btn.addEventListener('click', () => {
+            const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+        });
+    }
+</script>
+
 <style>
     main {
+        padding-block: var(--sp-7) var(--sp-9);
+    }
+
+    /* ---------- 阅读进度（§16 状态反馈） ---------- */
+
+    .progress {
+        position: fixed;
+        inset: var(--nav-h) 0 auto 0;
+        height: 2px;
+        z-index: var(--z-float);
+        pointer-events: none;
+    }
+
+    .progress-bar {
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: var(--accent);
+        transform: scaleX(0);
+        transform-origin: left center;
+    }
+
+    /* 必须写成长手：animation 简写会把 duration 归零，
+       滚动时间轴就失去了 auto 时长，进度条会一直停在 0。 */
+    @supports (animation-timeline: scroll()) {
+        .progress-bar {
+            animation-name: read-progress;
+            animation-timing-function: linear;
+            animation-duration: auto;
+            animation-fill-mode: both;
+            animation-timeline: scroll(root block);
+        }
+    }
+
+    @keyframes read-progress {
+        from {
+            transform: scaleX(0);
+        }
+        to {
+            transform: scaleX(1);
+        }
+    }
+
+    /* ---------- 文章头 ---------- */
+
+    .head {
         display: flex;
         flex-direction: column;
+        gap: var(--sp-4);
+        margin-bottom: var(--sp-6);
+    }
+
+    .back {
+        display: inline-flex;
         align-items: center;
-        padding: 2rem 0 4rem;
-        max-width: var(--site-content-width);
-        margin: 0 auto;
-        width: calc(100% - var(--site-page-gutter-total));
+        gap: var(--sp-1);
+        align-self: flex-start;
+        color: var(--text-2);
+        font-size: var(--fs-sm);
     }
 
-    .back-link-wrapper {
-        width: 100%;
-        padding-bottom: 1.5rem;
-        animation: fadeInUp 0.8s ease-out;
+    .back:hover {
+        color: var(--accent);
     }
 
-    .back-link {
-        color: #2563eb;
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 600;
-        display: inline-block;
-        transition: color 0.3s;
+    .chev {
+        width: 15px;
+        height: 15px;
+        /* §8：往它要去的方向让一步 */
+        transition: transform var(--dur-base) var(--ease-spring);
     }
 
-    .back-link:hover {
-        color: #1d4ed8;
+    .back:hover .chev {
+        transform: translateX(-3px);
     }
 
-    .post-header {
-        margin-bottom: 2rem;
-        text-align: left;
-        width: 100%;
-        animation: fadeInUp 0.8s ease-out 0.15s both;
-    }
-
-    .post-header h1 {
-        font-size: clamp(2rem, 4vw, 3rem);
-        font-weight: 900;
-        letter-spacing: -1px;
-        line-height: 1.2;
-        margin-bottom: 1rem;
-        color: #000;
-    }
-
-    .description {
-        font-size: 1.1rem;
-        color: #666;
-        line-height: 1.6;
-    }
-
-    .post-meta {
+    .meta {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
-        margin-top: 1.5rem;
         flex-wrap: wrap;
+        gap: var(--sp-2);
     }
 
-    .post-meta time {
-        font-size: 0.85rem;
-        color: #999;
+    .desc {
+        color: var(--text-2);
+        font-size: var(--fs-body);
     }
 
-    .tag {
-        background: #f0f4ff;
-        border: 1px solid #dbeafe;
-        color: #2563eb;
-        padding: 2px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
+    /* ---------- 正文纸面 ----------
+       正文交给 markdown.css，这里只负责它所在的那张纸。 */
+
+    .sheet {
+        padding: var(--sp-7);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-xl);
+        background: var(--surface);
+        animation-delay: 180ms;
     }
 
-    #post-detail {
-        width: 100%;
-        background: #fff;
-        border: 1px solid #eee;
-        border-radius: 20px;
-        padding: 3rem;
-        box-shadow: var(--shadow-card);
-        animation: fadeInUp 0.8s ease-out 0.3s both;
-    }
-
-    .md-rendered {
-        line-height: 1.8;
-        font-size: 1.05rem;
-    }
-
-    .post-footer {
-        margin-top: 4rem;
-        padding-top: 2rem;
-        border-top: 1px solid #eee;
+    .foot {
+        margin-top: var(--sp-7);
+        padding-top: var(--sp-6);
+        border-top: 1px solid var(--hairline);
         text-align: center;
+        animation-delay: 260ms;
     }
 
-    .button {
-        padding: 0.7rem 1.8rem;
-        border-radius: 50px;
-        font-weight: 600;
-        text-decoration: none;
-        font-size: 0.9rem;
-        transition: all 0.3s;
-    }
-
-    .button.primary {
-        background: #2563eb;
-        color: #fff;
-        box-shadow: var(--shadow-button);
-    }
-
-    .button.primary:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-button-hover);
-    }
+    /* ---------- 回到顶部：半透明材质圆片（§12） ---------- */
 
     #back-to-top {
         position: fixed;
-        bottom: 2rem;
-        right: 2rem;
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        border: 1px solid #eee;
-        background: #fff;
-        color: #333;
-        cursor: pointer;
+        right: var(--sp-6);
+        bottom: var(--sp-6);
+        z-index: var(--z-float);
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        border-radius: var(--r-full);
+        border: 1px solid var(--hairline-strong);
+        background: var(--material-bg);
+        backdrop-filter: var(--material-blur);
+        -webkit-backdrop-filter: var(--material-blur);
+        box-shadow: var(--shadow-2);
+        color: var(--text-1);
         opacity: 0;
         visibility: hidden;
-        transform: translateY(10px);
-        transition: all 0.3s ease;
-        z-index: 100;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        box-shadow: var(--shadow-button-neutral);
+        transform: translateY(8px) scale(0.9);
+        transition: opacity var(--dur-base) var(--ease-out),
+            visibility var(--dur-base) var(--ease-out),
+            transform var(--dur-spring) var(--ease-spring),
+            background-color var(--dur-fast) var(--ease-out),
+            color var(--dur-fast) var(--ease-out);
     }
 
-    #back-to-top.visible {
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        #back-to-top {
+            background: var(--surface);
+        }
+    }
+
+    #back-to-top svg {
+        width: 19px;
+        height: 19px;
+    }
+
+    #back-to-top.is-visible {
         opacity: 1;
         visibility: visible;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 
     #back-to-top:hover {
-        background: #2563eb;
-        color: #fff;
-        border-color: #2563eb;
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-button-hover);
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--text-on-accent);
     }
 
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    /* §1：反馈在按下时给，不等松手 */
+    #back-to-top:active {
+        transform: scale(0.9);
+        transition-duration: var(--dur-press);
     }
 
     @media (max-width: 900px) {
-        main { padding: 1.5rem 0 3rem; }
-        .post-header h1 { font-size: 1.6rem; }
-        .description { font-size: 1rem; }
-        #post-detail { padding: 1.5rem; border-radius: 16px; }
-        .md-rendered { font-size: 1rem; }
-        .md-rendered h2 { font-size: 1.3rem; }
-        .md-rendered h3 { font-size: 1.15rem; }
-        #back-to-top { bottom: 1.5rem; right: 1.5rem; width: 40px; height: 40px; }
+        main {
+            padding-block: var(--sp-6) var(--sp-8);
+        }
+
+        .sheet {
+            padding: var(--sp-5);
+            border-radius: var(--r-lg);
+        }
+
+        #back-to-top {
+            right: var(--sp-4);
+            bottom: var(--sp-4);
+            width: 40px;
+            height: 40px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .back:hover .chev,
+        #back-to-top:active {
+            transform: none;
+        }
+
+        #back-to-top.is-visible {
+            transform: none;
+        }
     }
 </style>
 
-<script is:inline>
-document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('back-to-top');
-    window.addEventListener('scroll', () => {
-        btn.classList.toggle('visible', window.scrollY > 400);
-    });
-});
-</script>

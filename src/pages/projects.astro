@@ -1,6 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Tag from '../components/Tag.astro';
 
 const projects = [
     {
@@ -40,28 +42,48 @@ const projects = [
         tags: ['Flutter', 'dart', 'UDP'],
     },
 ];
+
+// 原先在模板里直接 projects.reverse()，那是原地改数组；
+// 复制一份再倒序，顺序结果一样但不改动源数据。
+const ordered = [...projects].reverse();
 ---
 
-<Layout title="项目 - XIE YIFAN" description="XIE YIFAN 的开源项目与作品">
+<Layout title="项目 — XIE YIFAN" description="XIE YIFAN 的开源项目与作品">
     <Nav active="项目" />
 
-    <main>
-        <section id="projects-hero">
-            <h1>我的项目</h1>
-            <p class="subtitle">探索、创造与分享</p>
-        </section>
+    <main id="main" class="u-container">
+        <PageHeader
+            label={`WORK · ${ordered.length} 个`}
+            title="我的项目"
+            subtitle="探索、创造与分享"
+        />
 
-        <div class="projects-grid">
-            {projects.reverse().map((project) => (
-                <a href={project.url} target="_blank" rel="noopener" class="project-card">
-                    <h3>{project.name}</h3>
-                    <p>{project.description}</p>
-                    <div class="project-tags">
-                        {project.tags.map((tag) => (
-                            <span class="tag">{tag}</span>
-                        ))}
+        <div class="grid u-stagger">
+            {ordered.map((project, i) => (
+                <a
+                    class="u-card card"
+                    href={project.url}
+                    target="_blank"
+                    rel="noopener"
+                    style={`--i:${i}`}
+                >
+                    <div class="head">
+                        <span class="u-label num">{String(i + 1).padStart(2, '0')}</span>
+                        <h3>{project.name}</h3>
                     </div>
-                    <span class="view-project">在 GitHub 查看 →</span>
+
+                    <p class="desc">{project.description}</p>
+
+                    <div class="tags">
+                        {project.tags.map((tag) => <Tag variant="quiet">{tag}</Tag>)}
+                    </div>
+
+                    <span class="more">
+                        在 GitHub 查看
+                        <svg class="arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M5.5 10.5 10.5 5.5M6 5.5h4.5V10"></path>
+                        </svg>
+                    </span>
                 </a>
             ))}
         </div>
@@ -70,119 +92,90 @@ const projects = [
 
 <style>
     main {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 2rem 0 4rem;
-        max-width: var(--site-content-width);
-        margin: 0 auto;
-        width: calc(100% - var(--site-page-gutter-total));
+        padding-bottom: var(--sp-9);
     }
 
-    #projects-hero {
-        text-align: center;
-        margin-bottom: 1.5rem;
-        animation: fadeInUp 0.8s ease-out;
-    }
-
-    h1 {
-        font-size: clamp(2.5rem, 5vw, 4rem);
-        font-weight: 900;
-        letter-spacing: -2px;
-        line-height: 1.1;
-        margin-bottom: 0.8rem;
-        color: #000;
-    }
-
-    .subtitle {
-        font-size: 1.1rem;
-        color: #666;
-    }
-
-    .projects-grid {
+    .grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
-        width: 100%;
-        animation: fadeInUp 0.8s ease-out 0.2s both;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--sp-4);
     }
 
-    .project-card {
-        background: #fff;
-        border: 1px solid #eee;
-        border-radius: 16px;
-        padding: 2rem;
-        text-decoration: none;
-        color: #000;
-        transition: all 0.35s;
+    .card {
+        gap: var(--sp-3);
+        padding: var(--sp-5);
+        color: var(--text-1);
+    }
+
+    .card:hover {
+        color: var(--text-1);
+    }
+
+    .head {
         display: flex;
-        flex-direction: column;
-        box-shadow: var(--shadow-card);
+        align-items: baseline;
+        gap: var(--sp-3);
     }
 
-    .project-card:hover {
-        border-color: #2563eb;
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-card-hover);
+    .num {
+        flex-shrink: 0;
+        color: var(--accent);
     }
 
-    .project-card h3 {
-        font-size: 1.2rem;
-        font-weight: 700;
-        margin: 0 0 1rem 0;
-        color: #000;
+    h3 {
+        min-width: 0;
+        font-family: var(--font-mono);
+        font-size: var(--fs-h3);
+        line-height: var(--lh-h3);
+        letter-spacing: var(--ls-h3);
+        overflow-wrap: anywhere;
     }
 
-    .project-card p {
-        color: #666;
-        font-size: 0.95rem;
-        line-height: 1.6;
-        margin-bottom: 1.2rem;
+    .desc {
         flex: 1;
+        color: var(--text-2);
+        font-size: var(--fs-sm);
+        line-height: var(--lh-tight);
     }
 
-    .project-tags {
+    .tags {
         display: flex;
-        gap: 0.5rem;
         flex-wrap: wrap;
-        margin-bottom: 1.2rem;
+        gap: var(--sp-2);
     }
 
-    .tag {
-        padding: 0.3rem 0.8rem;
-        border-radius: 50px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        background: #f0f4ff;
-        border: 1px solid #dbeafe;
-        color: #2563eb;
+    .more {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--sp-1);
+        margin-top: var(--sp-1);
+        color: var(--accent);
+        font-size: var(--fs-sm);
+        font-weight: 500;
     }
 
-    .view-project {
-        color: #2563eb;
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: color 0.3s;
+    .arrow {
+        width: 15px;
+        height: 15px;
+        /* §8：外链的箭头朝右上，悬停时就往右上让一步 */
+        transition: transform var(--dur-base) var(--ease-spring);
     }
 
-    .project-card:hover .view-project {
-        color: #1d4ed8;
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
+    @media (hover: hover) {
+        .card:hover .arrow {
+            transform: translate(2px, -2px);
         }
     }
 
-    @media (max-width: 900px) {
-        main { padding: 2rem 0 4rem; }
-        h1 { font-size: 2rem; }
-        .projects-grid { grid-template-columns: 1fr; }
+    @media (max-width: 760px) {
+        .grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .card:hover .arrow {
+            transform: none;
+        }
     }
 </style>

@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
+import PageHeader from '../components/PageHeader.astro';
 
 const tools = [
     {
@@ -42,22 +43,31 @@ const tools = [
 ];
 ---
 
-<Layout title="工具 - XIE YIFAN" description="实用的在线工具集合">
+<Layout title="工具 — XIE YIFAN" description="实用的在线工具集合">
     <Nav active="工具" />
 
-    <main>
-        <section id="tools-hero">
-            <h1>实用工具</h1>
-            <p class="subtitle">简单、高效的在线工具集合</p>
-        </section>
+    <main id="main" class="u-container">
+        <PageHeader
+            label={`TOOLS · ${tools.length} 个`}
+            title="实用工具"
+            subtitle="全部在浏览器本地运行，文件不会上传到任何服务器"
+        />
 
-        <div class="tools-grid">
-            {tools.map((tool) => (
-                <a href={tool.url} class="tool-card">
-                    <div class="tool-icon">{tool.icon}</div>
-                    <h3>{tool.name}</h3>
-                    <p>{tool.description}</p>
-                    <span class="use-tool">使用工具 →</span>
+        <div class="grid u-stagger">
+            {tools.map((tool, i) => (
+                <a class="u-card card" href={tool.url} style={`--i:${i}`}>
+                    <span class="icon" aria-hidden="true">{tool.icon}</span>
+
+                    <div class="body">
+                        <h3>{tool.name}</h3>
+                        <p class="desc">{tool.description}</p>
+                        <span class="more">
+                            使用工具
+                            <svg class="arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5"></path>
+                            </svg>
+                        </span>
+                    </div>
                 </a>
             ))}
         </div>
@@ -66,108 +76,95 @@ const tools = [
 
 <style>
     main {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 2rem 0 4rem;
-        max-width: var(--site-content-width);
-        margin: 0 auto;
-        width: calc(100% - var(--site-page-gutter-total));
+        padding-bottom: var(--sp-9);
     }
 
-    #tools-hero {
-        text-align: center;
-        margin-bottom: 1.5rem;
-        animation: fadeInUp 0.8s ease-out;
-    }
-
-    h1 {
-        font-size: clamp(2.5rem, 5vw, 4rem);
-        font-weight: 900;
-        letter-spacing: -2px;
-        line-height: 1.1;
-        margin-bottom: 0.8rem;
-        color: #000;
-    }
-
-    .subtitle {
-        font-size: 1.1rem;
-        color: #666;
-    }
-
-    .tools-grid {
+    .grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
-        width: 100%;
-        animation: fadeInUp 0.8s ease-out 0.2s both;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--sp-4);
     }
 
-    .tool-card {
-        background: #fff;
-        border: 1px solid #eee;
-        border-radius: 16px;
-        padding: 2rem;
-        text-decoration: none;
-        color: #000;
-        transition: all 0.35s;
+    /* 原先是居中卡片。改成图标在左、文字左对齐：
+       六张卡片的标题会落在同一条竖线上，扫读比居中快。 */
+    .card {
+        flex-direction: row;
+        gap: var(--sp-4);
+        padding: var(--sp-5);
+        color: var(--text-1);
+    }
+
+    .card:hover {
+        color: var(--text-1);
+    }
+
+    .icon {
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        border-radius: var(--r-md);
+        background: var(--surface-2);
+        font-size: 1.35rem;
+        line-height: 1;
+        transition: background-color var(--dur-fast) var(--ease-out);
+    }
+
+    .card:hover .icon {
+        background: var(--accent-subtle);
+    }
+
+    .body {
         display: flex;
         flex-direction: column;
-        text-align: center;
-        box-shadow: var(--shadow-card);
+        gap: var(--sp-2);
+        min-width: 0;
     }
 
-    .tool-card:hover {
-        border-color: #2563eb;
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-card-hover);
+    h3 {
+        font-size: var(--fs-h3);
+        line-height: var(--lh-h3);
+        letter-spacing: var(--ls-h3);
     }
 
-    .tool-icon {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .tool-card h3 {
-        font-size: 1.2rem;
-        font-weight: 700;
-        margin: 0 0 0.8rem 0;
-        color: #000;
-    }
-
-    .tool-card p {
-        color: #666;
-        font-size: 0.95rem;
-        line-height: 1.6;
-        margin-bottom: 1.2rem;
+    .desc {
         flex: 1;
+        color: var(--text-2);
+        font-size: var(--fs-sm);
+        line-height: var(--lh-tight);
     }
 
-    .use-tool {
-        color: #2563eb;
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: color 0.3s;
+    .more {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--sp-1);
+        color: var(--accent);
+        font-size: var(--fs-sm);
+        font-weight: 500;
     }
 
-    .tool-card:hover .use-tool {
-        color: #1d4ed8;
+    .arrow {
+        width: 15px;
+        height: 15px;
+        transition: transform var(--dur-base) var(--ease-spring);
     }
 
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
+    @media (hover: hover) {
+        .card:hover .arrow {
+            transform: translateX(3px);
         }
-        to {
-            opacity: 1;
-            transform: translateY(0);
+    }
+
+    @media (max-width: 760px) {
+        .grid {
+            grid-template-columns: 1fr;
         }
     }
 
-    @media (max-width: 900px) {
-        main { padding: 2rem 0 4rem; }
-        h1 { font-size: 2rem; }
-        .tools-grid { grid-template-columns: 1fr; }
+    @media (prefers-reduced-motion: reduce) {
+        .card:hover .arrow {
+            transform: none;
+        }
     }
 </style>

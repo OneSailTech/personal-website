@@ -1,17 +1,24 @@
+/* ============================================================
+   Markdown 正文样式。文章详情页与 Markdown 阅读器共用。
+   这里的 --md-* 全部由 tokens.css 的语义变量推导，
+   所以深色模式不需要在本文件里再写一套规则。
+   ============================================================ */
+
 .md-rendered {
-    --md-text: #24292f;
-    --md-muted: #57606a;
-    --md-heading: #111827;
-    --md-border: #d8dee8;
-    --md-soft-border: #e6ebf2;
-    --md-surface: #ffffff;
-    --md-surface-muted: #f6f8fa;
-    --md-surface-hover: #eef6ff;
-    --md-accent: #2563eb;
-    --md-code-bg: #eef2ff;
-    --md-code-border: #dbe4ff;
+    --md-text: var(--text-1);
+    --md-muted: var(--text-2);
+    --md-heading: var(--text-1);
+    --md-border: var(--hairline-strong);
+    --md-soft-border: var(--hairline);
+    --md-surface: var(--surface);
+    --md-surface-muted: var(--surface-2);
+    --md-surface-hover: var(--accent-subtle);
+    --md-accent: var(--accent);
+    --md-code-bg: var(--accent-subtle);
 
     color: var(--md-text);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
     overflow-wrap: break-word;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -20,23 +27,25 @@
 .md-rendered h1,
 .md-rendered h2 {
     color: var(--md-heading);
-    line-height: 1.35;
+    line-height: var(--lh-h2);
+    letter-spacing: var(--ls-h2);
 }
 
 .md-rendered h2 {
-    font-size: 1.6rem;
-    font-weight: 700;
-    margin-top: 2.5rem;
-    margin-bottom: 1rem;
+    font-size: var(--fs-h2);
+    font-weight: 600;
+    margin-top: var(--sp-7);
+    margin-bottom: var(--sp-4);
 }
 
 .md-rendered h3 {
     color: var(--md-heading);
-    font-size: 1.3rem;
+    font-size: var(--fs-h3);
     font-weight: 600;
-    line-height: 1.4;
-    margin-top: 2rem;
-    margin-bottom: 0.8rem;
+    line-height: var(--lh-h3);
+    letter-spacing: var(--ls-h3);
+    margin-top: var(--sp-6);
+    margin-bottom: var(--sp-3);
 }
 
 .md-rendered p {
@@ -61,21 +70,21 @@
 
 .md-rendered code {
     background: var(--md-code-bg);
-    border: 1px solid var(--md-code-border);
-    color: #172554;
+    border: 0;
+    color: var(--md-accent);
     padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.9em;
+    border-radius: var(--r-sm);
+    font-size: 0.88em;
 }
 
 .md-rendered pre {
-    background: #0f172a;
-    border: 1px solid #1e293b;
-    border-radius: 12px;
-    color: #e5e7eb;
-    padding: 1.2rem 1.5rem;
+    background: var(--surface-sunken);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    color: var(--md-text);
+    padding: var(--sp-4) var(--sp-5);
     overflow-x: auto;
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--sp-5);
 }
 
 .md-rendered table {
@@ -126,7 +135,7 @@
 
 .md-rendered tbody tr:nth-child(even),
 .md-rendered table > tr:nth-child(even) {
-    background: #fbfcfe;
+    background: var(--surface-2);
 }
 
 .md-rendered tbody tr:hover,
@@ -152,21 +161,22 @@
     color: var(--md-accent);
     font-weight: 500;
     text-decoration: underline;
-    text-decoration-color: rgba(37, 99, 235, 0.35);
+    text-decoration-color: var(--accent-ring);
     text-underline-offset: 0.2em;
+    transition: text-decoration-color var(--dur-fast) var(--ease-out);
 }
 
 .md-rendered a:hover {
-    color: #1d4ed8;
+    color: var(--accent-hover);
     text-decoration-color: currentColor;
 }
 
 .md-rendered blockquote {
-    border-left: 4px solid var(--md-accent);
-    padding: 0.85rem 1rem;
-    margin: 1.25rem 0;
+    border-left: 3px solid var(--md-accent);
+    padding: var(--sp-3) var(--sp-4);
+    margin: var(--sp-5) 0;
     background: var(--md-surface-muted);
-    border-radius: 0 8px 8px 0;
+    border-radius: 0 var(--r-sm) var(--r-sm) 0;
     color: var(--md-muted);
 }
 
@@ -227,7 +237,7 @@
 
 .md-rendered del {
     text-decoration: line-through;
-    color: #6b7280;
+    color: var(--text-3);
 }
 
 @media (max-width: 900px) {
