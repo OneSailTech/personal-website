@@ -1,363 +1,624 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import Nav from '../../components/Nav.astro';
+import ToolShell from '../../components/ToolShell.astro';
+
+// 时区表：常用的几个够用了，全量列表有几百条，选起来反而更慢（§6 常用的放前面）。
+// local 是个哨兵值，运行时换成浏览器自己的时区。
+const ZONES = [
+    { id: 'local', label: '本地时区 · 跟随系统' },
+    { id: 'UTC', label: 'UTC · 协调世界时' },
+    { id: 'Asia/Shanghai', label: '中国标准时间 · UTC+8' },
+    { id: 'Asia/Tokyo', label: '日本 · UTC+9' },
+    { id: 'Asia/Singapore', label: '新加坡 · UTC+8' },
+    { id: 'Asia/Kolkata', label: '印度 · UTC+5:30' },
+    { id: 'Europe/London', label: '伦敦 · UTC+0 / +1' },
+    { id: 'Europe/Paris', label: '巴黎 · UTC+1 / +2' },
+    { id: 'America/New_York', label: '纽约 · UTC−5 / −4' },
+    { id: 'America/Los_Angeles', label: '洛杉矶 · UTC−8 / −7' },
+];
 ---
 
-<Layout title="时间戳转换 - XIE YIFAN" description="Unix 时间戳与日期互相转换">
-    <Nav active="工具" />
+<ToolShell
+    label="TOOL · TIME"
+    title="时间戳转换"
+    subtitle="Unix 时间戳与日期时间互转，秒和毫秒自动判断。可以换时区，夏令时也按当天的实际偏移算。"
+    description="Unix 时间戳与日期时间互相转换，支持时区与毫秒"
+>
+    <section class="t-panel clock">
+        <p class="t-legend">当前时间 · <span id="zone-name">本地</span></p>
+        <p class="now-time" id="now-time">—</p>
 
-    <main>
-        <div class="back-link-wrapper">
-            <a href="/tools" class="back-link">← 返回工具列表</a>
+        <div class="chips">
+            <button class="chip" id="copy-sec" type="button">
+                <span class="chip-key">秒</span>
+                <span class="chip-val" id="now-sec">—</span>
+            </button>
+            <button class="chip" id="copy-ms" type="button">
+                <span class="chip-key">毫秒</span>
+                <span class="chip-val" id="now-ms">—</span>
+            </button>
         </div>
 
-        <section id="tool-hero">
-            <h1>时间戳转换</h1>
-            <p class="subtitle">Unix 时间戳与日期时间互相转换</p>
-        </section>
+        <div class="t-field zone-field">
+            <label for="zone">时区</label>
+            <select class="t-select" id="zone">
+                {ZONES.map((zone) => <option value={zone.id}>{zone.label}</option>)}
+            </select>
+            <p class="t-hint">下面两处转换都按这个时区解释与显示。</p>
+        </div>
 
-        <div class="tool-container">
-            <div class="current-time-card">
-                <span class="label">当前时间</span>
-                <div class="time-display" id="current-time"></div>
-                <div class="timestamp-display" id="current-timestamp"></div>
+        <p class="t-status" id="clock-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="t-panel">
+        <p class="t-legend">时间戳 → 日期时间</p>
+
+        <div class="t-field">
+            <label for="ts-input">时间戳</label>
+            <div class="pair">
+                <input
+                    class="t-input"
+                    id="ts-input"
+                    type="text"
+                    inputmode="numeric"
+                    spellcheck="false"
+                    autocomplete="off"
+                    placeholder="1771000000"
+                />
+                <button class="u-btn u-btn--primary" id="ts-go" type="button">转换</button>
+                <button class="u-btn u-btn--ghost" id="ts-now" type="button">填入现在</button>
             </div>
+            <p class="t-hint">10 位按秒、13 位按毫秒，其他长度按秒处理。回车也能转。</p>
+        </div>
 
-            <div class="converter-section">
-                <h3>时间戳 → 日期时间</h3>
-                <div class="input-row">
-                    <input type="text" id="timestamp-input" placeholder="输入时间戳（秒或毫秒）" />
-                    <button class="convert-btn" onclick="timestampToDate()">转换</button>
-                </div>
-                <div class="result-display" id="date-result"></div>
+        <div class="rows" id="ts-out" hidden></div>
+        <p class="t-status" id="ts-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="t-panel">
+        <p class="t-legend">日期时间 → 时间戳</p>
+
+        <div class="t-field">
+            <label for="date-input">日期时间</label>
+            <div class="pair">
+                <input
+                    class="t-input"
+                    id="date-input"
+                    type="text"
+                    spellcheck="false"
+                    autocomplete="off"
+                    placeholder="2025-02-17 14:30:00"
+                />
+                <button class="u-btn u-btn--primary" id="date-go" type="button">转换</button>
+                <button class="u-btn u-btn--ghost" id="date-now" type="button">填入现在</button>
             </div>
-
-            <div class="converter-section">
-                <h3>日期时间 → 时间戳</h3>
-                <div class="input-row">
-                    <input type="text" id="date-input" placeholder="输入日期时间，如 2025-02-17 14:30:00" />
-                    <button class="convert-btn" onclick="dateToTimestamp()">转换</button>
-                </div>
-                <div class="result-display" id="timestamp-result"></div>
-            </div>
+            <p class="t-hint">
+                2025-02-17 14:30:00 / 2025/02/17 14:30 / 2025-02-17T14:30 都认；只写日期按 00:00:00 算。
+            </p>
         </div>
-    </main>
-</Layout>
 
-<script is:inline>
-function updateCurrentTime() {
-    const now = new Date();
-    const timeStr = now.toLocaleString('zh-CN', {
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
-    });
-    const ts = Math.floor(now.getTime() / 1000);
-
-    const timeEl = document.getElementById('current-time');
-    timeEl.textContent = timeStr;
-    timeEl.onclick = () => copyValue(timeEl, timeStr);
-    timeEl.classList.add('copyable');
-
-    const tsEl = document.getElementById('current-timestamp');
-    tsEl.textContent = ts;
-    tsEl.onclick = () => copyValue(tsEl, ts.toString());
-    tsEl.classList.add('copyable');
-}
-
-updateCurrentTime();
-setInterval(updateCurrentTime, 1000);
-
-function timestampToDate() {
-    const input = document.getElementById('timestamp-input').value.trim();
-    const result = document.getElementById('date-result');
-
-    if (!input) { result.textContent = ''; return; }
-
-    let ts = parseInt(input);
-    if (isNaN(ts)) { result.textContent = '请输入有效的时间戳'; return; }
-
-    if (input.length > 10) ts = ts;
-    else ts = ts * 1000;
-
-    const date = new Date(ts);
-    if (isNaN(date.getTime())) { result.textContent = '无效的时间戳'; return; }
-
-    const localTime = date.toLocaleString('zh-CN', { hour12: false });
-    const utcTime = date.toUTCString();
-    const isoTime = date.toISOString();
-
-    result.innerHTML = `
-        <div class="result-item">
-            <span class="result-label">本地时间：</span>
-            <span class="result-value copyable" onclick="copyValue(this, '${localTime}')">${localTime}</span>
-        </div>
-        <div class="result-item">
-            <span class="result-label">UTC 时间：</span>
-            <span class="result-value copyable" onclick="copyValue(this, '${utcTime}')">${utcTime}</span>
-        </div>
-        <div class="result-item">
-            <span class="result-label">ISO 格式：</span>
-            <span class="result-value copyable" onclick="copyValue(this, '${isoTime}')">${isoTime}</span>
-        </div>
-    `;
-}
-
-function dateToTimestamp() {
-    const input = document.getElementById('date-input').value.trim();
-    const result = document.getElementById('timestamp-result');
-
-    if (!input) { result.textContent = ''; return; }
-
-    const date = new Date(input);
-    if (isNaN(date.getTime())) { result.textContent = '无效的日期时间格式'; return; }
-
-    const seconds = Math.floor(date.getTime() / 1000);
-    const milliseconds = date.getTime();
-
-    result.innerHTML = `
-        <div class="result-item">
-            <span class="result-label">秒：</span>
-            <span class="result-value copyable" onclick="copyValue(this, '${seconds}')">${seconds}</span>
-        </div>
-        <div class="result-item">
-            <span class="result-label">毫秒：</span>
-            <span class="result-value copyable" onclick="copyValue(this, '${milliseconds}')">${milliseconds}</span>
-        </div>
-    `;
-}
-
-function copyValue(el, text) {
-    navigator.clipboard.writeText(text);
-    const original = el.textContent;
-    el.textContent = '✓ 已复制';
-    el.classList.add('copied');
-    setTimeout(() => {
-        el.textContent = original;
-        el.classList.remove('copied');
-    }, 1200);
-}
-</script>
+        <div class="rows" id="date-out" hidden></div>
+        <p class="t-status" id="date-status" role="status" aria-live="polite"></p>
+    </section>
 
 <style>
-    main {
+    /* ---------- 当前时间 ---------- */
+
+    .now-time {
+        font-family: var(--font-mono);
+        font-size: clamp(1.6rem, 5.5vw, 2.375rem);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        /* 等宽数字：秒针跳动时整行不会左右抖 */
+        font-variant-numeric: tabular-nums;
+        color: var(--text-1);
+    }
+
+    .chips {
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
+        gap: var(--sp-3);
+    }
+
+    .chip {
+        display: inline-flex;
+        align-items: baseline;
+        gap: var(--sp-2);
+        padding: 0.45rem var(--sp-4);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-full);
+        background: var(--surface-2);
+        color: var(--text-1);
+        transition: border-color var(--dur-fast) var(--ease-out),
+            color var(--dur-fast) var(--ease-out),
+            transform var(--dur-press) var(--ease-out);
+    }
+
+    .chip:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    /* §1：反馈在按下时给 */
+    .chip:active {
+        transform: scale(0.97);
+    }
+
+    .chip.is-copied {
+        border-color: var(--success);
+        color: var(--success);
+    }
+
+    .chip-key {
+        font-family: var(--font-mono);
+        font-size: var(--fs-label);
+        letter-spacing: var(--ls-label);
+        text-transform: uppercase;
+        color: var(--text-3);
+    }
+
+    .chip-val {
+        font-family: var(--font-mono);
+        font-size: var(--fs-sm);
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* 下拉框在 960px 的面板里铺满一整行没有道理 */
+    .zone-field {
+        max-width: 24rem;
+    }
+
+    /* ---------- 输入行 ---------- */
+
+    .pair {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--sp-3);
+    }
+
+    .pair .t-input {
+        flex: 1 1 12rem;
+        width: auto;
+    }
+
+    /* ---------- 结果 ---------- */
+
+    .rows {
+        padding: var(--sp-2) var(--sp-4);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-md);
+        background: var(--surface-2);
+    }
+
+    .row {
+        display: flex;
         align-items: center;
-        padding: 2rem 0 4rem;
-        max-width: var(--site-narrow-width);
-        margin: 0 auto;
-        width: calc(100% - var(--site-page-gutter-total));
+        gap: var(--sp-3);
+        padding: var(--sp-3) 0;
     }
 
-    .back-link-wrapper {
-        width: 100%;
-        padding-bottom: 1.5rem;
-        animation: fadeInUp 0.8s ease-out;
+    .row + .row {
+        border-top: 1px solid var(--hairline);
     }
 
-    .back-link {
-        color: #2563eb;
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 600;
-        display: inline-block;
-        transition: color 0.3s;
+    .row-key {
+        flex-shrink: 0;
+        width: 5rem;
+        color: var(--text-3);
+        font-size: var(--fs-xs);
     }
 
-    .back-link:hover {
-        color: #1d4ed8;
-    }
-
-    #tool-hero {
-        text-align: center;
-        margin-bottom: 3rem;
-        animation: fadeInUp 0.8s ease-out 0.1s both;
-    }
-
-    #tool-hero h1 {
-        font-size: clamp(2rem, 5vw, 3rem);
-        font-weight: 900;
-        letter-spacing: -1px;
-        margin-bottom: 0.8rem;
-        color: #000;
-    }
-
-    .subtitle {
-        font-size: 1.1rem;
-        color: #666;
-    }
-
-    .tool-container {
-        width: 100%;
-        animation: fadeInUp 0.8s ease-out 0.2s both;
-    }
-
-    .current-time-card {
-        background: #fff;
-        border: 1px solid #eee;
-        border-radius: 16px;
-        padding: 2rem;
-        text-align: center;
-        margin-bottom: 2rem;
-        box-shadow: var(--shadow-card);
-    }
-
-    .current-time-card .label {
-        font-size: 0.85rem;
-        color: #666;
-        display: block;
-        margin-bottom: 0.8rem;
-    }
-
-    .time-display {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-        color: #000;
-    }
-
-    .timestamp-display {
-        font-size: 1.1rem;
-        color: #2563eb;
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    }
-
-    .time-display.copyable,
-    .timestamp-display.copyable {
-        cursor: pointer;
-        padding: 0.3rem 0.6rem;
-        border-radius: 6px;
-        transition: all 0.2s;
-    }
-
-    .time-display.copyable:hover,
-    .timestamp-display.copyable:hover {
-        background: #f0f4ff;
-    }
-
-    .time-display.copyable.copied,
-    .timestamp-display.copyable.copied {
-        background: #dcfce7;
-        color: #16a34a;
-    }
-
-    .converter-section {
-        background: #fff;
-        border: 1px solid #eee;
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow-card);
-    }
-
-    .converter-section h3 {
-        font-size: 1.1rem;
-        margin-bottom: 1.2rem;
-        color: #666;
-    }
-
-    .input-row {
-        display: flex;
-        gap: 0.8rem;
-    }
-
-    .input-row input {
+    .row-val {
         flex: 1;
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 0.8rem 1rem;
-        color: #000;
-        font-size: 0.95rem;
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    }
-
-    .input-row input:focus {
-        outline: none;
-        border-color: #2563eb;
-    }
-
-    .convert-btn {
-        padding: 0.8rem 1.5rem;
-        background: #2563eb;
-        border: none;
-        border-radius: 10px;
-        color: #fff;
-        font-size: 0.95rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        white-space: nowrap;
-        box-shadow: var(--shadow-button);
-    }
-
-    .convert-btn:hover {
-        background: #1d4ed8;
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-button-hover);
-    }
-
-    .result-display {
-        margin-top: 1.2rem;
-        padding: 1rem;
-        background: #f9fafb;
-        border-radius: 10px;
-        min-height: 3rem;
-    }
-
-    .result-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.4rem 0;
-        font-size: 0.95rem;
-    }
-
-    .result-label {
-        color: #666;
-    }
-
-    .result-value {
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-        flex: 1;
-        text-align: right;
-        margin-right: 0.5rem;
-    }
-
-    .result-value.copyable {
-        cursor: pointer;
-        padding: 0.3rem 0.6rem;
-        border-radius: 6px;
-        transition: all 0.2s;
+        min-width: 0;
+        font-family: var(--font-mono);
+        font-size: var(--fs-xs);
+        color: var(--text-1);
+        overflow-wrap: anywhere;
+        /* 点一下就整段选中，不用手动拖 */
         user-select: all;
     }
 
-    .result-value.copyable:hover {
-        background: #f0f4ff;
-        color: #2563eb;
+    .row-copy {
+        flex-shrink: 0;
+        padding: 0.25rem var(--sp-3);
+        border-radius: var(--r-sm);
+        color: var(--text-3);
+        font-size: var(--fs-xs);
+        transition: background-color var(--dur-fast) var(--ease-out),
+            color var(--dur-fast) var(--ease-out),
+            transform var(--dur-press) var(--ease-out);
     }
 
-    .result-value.copyable.copied {
-        background: #dcfce7;
-        color: #16a34a;
+    .row-copy:hover {
+        background: var(--surface);
+        color: var(--accent);
     }
 
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
+    .row-copy:active {
+        transform: scale(0.94);
+    }
+
+    @media (max-width: 700px) {
+        .row {
+            flex-wrap: wrap;
         }
-        to {
-            opacity: 1;
-            transform: translateY(0);
+
+        .row-key {
+            width: 100%;
         }
     }
 
-    @media (max-width: 900px) {
-        main { padding: 1.5rem 0 3rem; }
-        #tool-hero h1 { font-size: 2rem; }
-        .input-row { flex-direction: column; }
-        .time-display { font-size: 1.5rem; }
+    @media (prefers-reduced-motion: reduce) {
+        .chip:active,
+        .row-copy:active {
+            transform: none;
+        }
     }
 </style>
+
+<script>
+    import { copyText } from '../../scripts/copy';
+
+    // §16：完成 / 提醒 / 错误 分开表达，三块区域各有自己的状态行
+    type Kind = 'done' | 'warn' | 'error' | 'idle';
+
+    function reporter(el: HTMLElement) {
+        return (kind: Kind, text: string) => {
+            el.className = 't-status';
+            if (kind !== 'idle') el.classList.add(`is-${kind}`);
+            el.textContent = text;
+        };
+    }
+
+    const zoneSelect = document.getElementById('zone') as HTMLSelectElement;
+    const LOCAL_ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+
+    function zone(): string {
+        return zoneSelect.value === 'local' ? LOCAL_ZONE : zoneSelect.value;
+    }
+
+    // ---------- 时区换算 ----------
+    // 不自己维护偏移表：夏令时的规则每年都可能改，只有 Intl 里的数据是准的。
+
+    /** 某一刻在目标时区的挂钟读数 */
+    function partsIn(ms: number, tz: string) {
+        const fmt = new Intl.DateTimeFormat('en-CA', {
+            timeZone: tz,
+            hourCycle: 'h23',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        });
+
+        const out: Record<string, number> = {};
+        for (const part of fmt.formatToParts(ms)) {
+            if (part.type !== 'literal') out[part.type] = Number(part.value);
+        }
+        return out as { year: number; month: number; day: number; hour: number; minute: number; second: number };
+    }
+
+    /** 目标时区在这一刻相对 UTC 的偏移（毫秒）。跟着夏令时走，所以必须按时刻算。 */
+    function offsetAt(ms: number, tz: string): number {
+        const p = partsIn(ms, tz);
+        const asUTC = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+        // 挂钟读数没有毫秒位，两边都截到整秒才可比
+        return asUTC - Math.floor(ms / 1000) * 1000;
+    }
+
+    function offsetText(ms: number, tz: string): string {
+        const minutes = Math.round(offsetAt(ms, tz) / 60000);
+        const sign = minutes < 0 ? '−' : '+';
+        const abs = Math.abs(minutes);
+        const hh = String(Math.floor(abs / 60)).padStart(2, '0');
+        const mm = String(abs % 60).padStart(2, '0');
+        return `UTC${sign}${hh}:${mm}`;
+    }
+
+    const pad = (n: number, width = 2) => String(n).padStart(width, '0');
+
+    /** 目标时区里的 YYYY-MM-DD HH:MM:SS */
+    function wallText(ms: number, tz: string, withSeconds = true): string {
+        const p = partsIn(ms, tz);
+        const date = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
+        const time = withSeconds
+            ? `${pad(p.hour)}:${pad(p.minute)}:${pad(p.second)}`
+            : `${pad(p.hour)}:${pad(p.minute)}`;
+        return `${date} ${time}`;
+    }
+
+    /** 把挂钟读数当作目标时区的本地时间，反推 epoch。 */
+    function epochFromWall(
+        y: number, mo: number, d: number, h: number, mi: number, s: number, tz: string
+    ): number {
+        const naive = Date.UTC(y, mo - 1, d, h, mi, s);
+        // 要减的偏移取决于结果本身，先用 naive 处的偏移试一次，再用试出来的
+        // 时刻修一次。夏令时切换那天两次就收敛了。
+        //
+        // 切换当天的两种边界情况都是时区本身的歧义，不是算错：
+        // 往回调的那一小时挂钟会走两遍（取靠前的那一次），
+        // 往前拨掉的那一小时根本不存在（落到切换前的同一挂钟读数）。
+        let epoch = naive - offsetAt(naive, tz);
+        epoch = naive - offsetAt(epoch, tz);
+        return epoch;
+    }
+
+    // 中文的"3 天前 / 2 小时后"，比一串绝对时间更快读懂（§6）
+    const RTF = new Intl.RelativeTimeFormat('zh-CN', { numeric: 'auto' });
+    const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
+        ['year', 31536000000],
+        ['month', 2592000000],
+        ['day', 86400000],
+        ['hour', 3600000],
+        ['minute', 60000],
+        ['second', 1000],
+    ];
+
+    function relative(ms: number): string {
+        const diff = ms - Date.now();
+        for (const [unit, size] of UNITS) {
+            if (Math.abs(diff) >= size) return RTF.format(Math.round(diff / size), unit);
+        }
+        return '就是现在';
+    }
+
+    // ---------- 结果行 ----------
+    // 全程 textContent + 真实监听器：原实现用 innerHTML 拼字符串并内联 onclick，
+    // 值里只要有一个引号就会把结构撑破。
+
+    function renderRows(host: HTMLElement, items: [string, string][], say: (k: Kind, t: string) => void) {
+        host.replaceChildren(
+            ...items.map(([key, value]) => {
+                const row = document.createElement('div');
+                row.className = 'row';
+
+                const k = document.createElement('span');
+                k.className = 'row-key';
+                k.textContent = key;
+
+                const v = document.createElement('span');
+                v.className = 'row-val';
+                v.textContent = value;
+
+                const copy = document.createElement('button');
+                copy.type = 'button';
+                copy.className = 'row-copy';
+                copy.textContent = '复制';
+                copy.setAttribute('aria-label', `复制${key}`);
+                copy.addEventListener('click', async () => {
+                    const ok = await copyText(value);
+                    say(ok ? 'done' : 'error', ok ? `已复制${key}` : '复制失败，手动选中复制吧');
+                });
+
+                row.append(k, v, copy);
+                return row;
+            })
+        );
+        host.hidden = items.length === 0;
+    }
+
+    // ---------- 当前时间 ----------
+
+    const zoneName = document.getElementById('zone-name') as HTMLElement;
+    const nowTime = document.getElementById('now-time') as HTMLElement;
+    const nowSec = document.getElementById('now-sec') as HTMLElement;
+    const nowMs = document.getElementById('now-ms') as HTMLElement;
+    const sayClock = reporter(document.getElementById('clock-status') as HTMLElement);
+
+    function tick() {
+        const now = Date.now();
+        const tz = zone();
+        zoneName.textContent = `${tz} · ${offsetText(now, tz)}`;
+        nowTime.textContent = wallText(now, tz);
+        nowSec.textContent = String(Math.floor(now / 1000));
+        nowMs.textContent = String(now);
+    }
+
+    tick();
+    // 每 250ms 对一次表：只按 1000ms 走，秒位会慢慢漂到看起来卡了一下
+    setInterval(tick, 250);
+
+    for (const [id, get] of [
+        ['copy-sec', () => nowSec.textContent ?? ''],
+        ['copy-ms', () => nowMs.textContent ?? ''],
+    ] as [string, () => string][]) {
+        const chip = document.getElementById(id) as HTMLButtonElement;
+        chip.addEventListener('click', async () => {
+            const ok = await copyText(get());
+            sayClock(ok ? 'done' : 'error', ok ? '已复制当前时间戳' : '复制失败，手动选中复制吧');
+            if (!ok) return;
+            // 按钮自己也变一下色：反馈就在手指底下，不用去看状态行
+            chip.classList.add('is-copied');
+            setTimeout(() => chip.classList.remove('is-copied'), 900);
+        });
+    }
+
+    // ---------- 时间戳 → 日期时间 ----------
+
+    const tsInput = document.getElementById('ts-input') as HTMLInputElement;
+    const tsOut = document.getElementById('ts-out') as HTMLElement;
+    const sayTs = reporter(document.getElementById('ts-status') as HTMLElement);
+
+    /** 10 位按秒、13 位按毫秒。原实现写了一句 `if (len > 10) ts = ts` 的空语句，
+        意思对但表达不出来，这里把判据写清楚。 */
+    function parseTimestamp(text: string): number | null {
+        const raw = text.trim().replace(/[\s,_]/g, '');
+        if (!/^-?\d+$/.test(raw)) return null;
+
+        const digits = raw.replace('-', '').length;
+        const ms = digits >= 12 ? Number(raw) : Number(raw) * 1000;
+        // Date 的可表示范围是 ±8.64e15 毫秒，超出就不是有效时刻
+        return Number.isFinite(ms) && Math.abs(ms) <= 8.64e15 ? ms : null;
+    }
+
+    let lastTs: number | null = null;
+
+    function showTimestamp(ms: number) {
+        lastTs = ms;
+        const tz = zone();
+        renderRows(
+            tsOut,
+            [
+                ['所选时区', `${wallText(ms, tz)}（${offsetText(ms, tz)}）`],
+                ['UTC', wallText(ms, 'UTC')],
+                ['ISO 8601', new Date(ms).toISOString()],
+                ['距现在', relative(ms)],
+                ['秒 / 毫秒', `${Math.floor(ms / 1000)} / ${ms}`],
+            ],
+            sayTs
+        );
+    }
+
+    function runTimestamp() {
+        const text = tsInput.value;
+        if (!text.trim()) {
+            tsOut.hidden = true;
+            lastTs = null;
+            sayTs('warn', '先填一个时间戳');
+            return;
+        }
+
+        const ms = parseTimestamp(text);
+        if (ms === null) {
+            tsOut.hidden = true;
+            lastTs = null;
+            sayTs('error', '这不是一个有效的时间戳');
+            return;
+        }
+
+        showTimestamp(ms);
+        sayTs('idle', '');
+    }
+
+    document.getElementById('ts-go')!.addEventListener('click', runTimestamp);
+
+    // 回车就转：填完数字还要去点按钮是多一步（§6）
+    tsInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            runTimestamp();
+        }
+    });
+
+    document.getElementById('ts-now')!.addEventListener('click', () => {
+        tsInput.value = String(Math.floor(Date.now() / 1000));
+        runTimestamp();
+    });
+
+    // ---------- 日期时间 → 时间戳 ----------
+
+    const dateInput = document.getElementById('date-input') as HTMLInputElement;
+    const dateOut = document.getElementById('date-out') as HTMLElement;
+    const sayDate = reporter(document.getElementById('date-status') as HTMLElement);
+
+    // 只认明确的年月日写法。交给 new Date(string) 去猜的话，"2025-02-17" 会被
+    // 当成 UTC 午夜，"2025/02/17" 又是本地午夜，同一个人写两种格式会得到差 8 小时
+    // 的两个结果。
+    const WALL_RE = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})(?:[T\s]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?$/;
+
+    interface Wall {
+        y: number;
+        mo: number;
+        d: number;
+        h: number;
+        mi: number;
+        s: number;
+    }
+
+    function parseWall(text: string): Wall | null {
+        const match = WALL_RE.exec(text.trim());
+        if (!match) return null;
+
+        const [, y, mo, d, h = '0', mi = '0', s = '0'] = match;
+        const wall: Wall = {
+            y: Number(y), mo: Number(mo), d: Number(d),
+            h: Number(h), mi: Number(mi), s: Number(s),
+        };
+
+        if (wall.mo < 1 || wall.mo > 12 || wall.d < 1 || wall.d > 31) return null;
+        if (wall.h > 23 || wall.mi > 59 || wall.s > 59) return null;
+        return wall;
+    }
+
+    let lastWall: Wall | null = null;
+
+    function showWall(wall: Wall): boolean {
+        const tz = zone();
+        const ms = epochFromWall(wall.y, wall.mo, wall.d, wall.h, wall.mi, wall.s, tz);
+        const back = partsIn(ms, tz);
+
+        // 2 月 30 号这种日期会被 Date.UTC 顺延到 3 月，回读一遍就能发现
+        if (back.year !== wall.y || back.month !== wall.mo || back.day !== wall.d) return false;
+
+        lastWall = wall;
+        renderRows(
+            dateOut,
+            [
+                ['秒', String(Math.floor(ms / 1000))],
+                ['毫秒', String(ms)],
+                ['ISO 8601', new Date(ms).toISOString()],
+                ['按时区', `${wallText(ms, tz)}（${offsetText(ms, tz)}）`],
+                ['距现在', relative(ms)],
+            ],
+            sayDate
+        );
+        return true;
+    }
+
+    function runWall() {
+        const text = dateInput.value;
+        if (!text.trim()) {
+            dateOut.hidden = true;
+            lastWall = null;
+            sayDate('warn', '先填一个日期时间');
+            return;
+        }
+
+        const wall = parseWall(text);
+        if (!wall) {
+            dateOut.hidden = true;
+            lastWall = null;
+            sayDate('error', '读不出这个日期，试试 2025-02-17 14:30:00 这样写');
+            return;
+        }
+
+        if (!showWall(wall)) {
+            dateOut.hidden = true;
+            lastWall = null;
+            sayDate('error', `${wall.y} 年 ${wall.mo} 月没有 ${wall.d} 号`);
+            return;
+        }
+
+        sayDate('idle', '');
+    }
+
+    document.getElementById('date-go')!.addEventListener('click', runWall);
+
+    dateInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            runWall();
+        }
+    });
+
+    document.getElementById('date-now')!.addEventListener('click', () => {
+        dateInput.value = wallText(Date.now(), zone());
+        runWall();
+    });
+
+    // 换时区时把已经算出来的两个结果一起刷新：留着上一个时区的数字比空着更容易看错
+    zoneSelect.addEventListener('change', () => {
+        tick();
+        if (lastTs !== null) showTimestamp(lastTs);
+        if (lastWall) showWall(lastWall);
+    });
+
+    // 打开页面就先把当前时刻填进"时间戳 → 日期"，第一眼就有东西可看（§6）。
+    // 截到整秒，输入框里的秒和结果里的毫秒才是同一个时刻。
+    const boot = Math.floor(Date.now() / 1000) * 1000;
+    tsInput.value = String(boot / 1000);
+    showTimestamp(boot);
+</script>
+</ToolShell>
