@@ -1,0 +1,140 @@
+---
+// 主题切换。首帧的主题由 Layout.astro 里的同步脚本定下，这里只负责交互。
+---
+
+<button
+    class="theme-toggle"
+    id="theme-toggle"
+    type="button"
+    aria-label="切换深色模式"
+    title="切换深色模式"
+>
+    <span class="icon-wrap">
+        <svg class="icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.2"></circle>
+            <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4L17 7M7 17l-1.6 1.6"></path>
+        </svg>
+        <svg class="icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.5 14.6A8.6 8.6 0 1 1 9.4 3.5a6.8 6.8 0 0 0 11.1 11.1z"></path>
+        </svg>
+    </span>
+</button>
+
+<script>
+    const toggle = document.getElementById('theme-toggle');
+
+    function effectiveTheme() {
+        const explicit = document.documentElement.dataset.theme;
+        if (explicit === 'light' || explicit === 'dark') return explicit;
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    function sync() {
+        const isDark = effectiveTheme() === 'dark';
+        toggle?.setAttribute('aria-pressed', String(isDark));
+        toggle?.setAttribute('aria-label', isDark ? '切换为浅色模式' : '切换为深色模式');
+        toggle?.setAttribute('title', isDark ? '切换为浅色模式' : '切换为深色模式');
+    }
+
+    toggle?.addEventListener('click', () => {
+        const next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        try {
+            localStorage.setItem('theme', next);
+        } catch (e) {
+            /* 隐私模式下写入失败，本次会话内仍然生效 */
+        }
+        sync();
+    });
+
+    // 用户没有显式选择时，跟随系统的实时变化
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync);
+
+    sync();
+</script>
+
+<style>
+    .theme-toggle {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: var(--r-full);
+        color: var(--text-2);
+        /* §7：从按钮自身缩放，不从中心 */
+        transform-origin: center;
+        transition: background-color var(--dur-fast) var(--ease-out),
+            color var(--dur-fast) var(--ease-out),
+            transform var(--dur-press) var(--ease-out);
+    }
+
+    .theme-toggle:hover {
+        background: var(--surface-2);
+        color: var(--text-1);
+    }
+
+    .theme-toggle:active {
+        transform: scale(0.9);
+    }
+
+    .icon-wrap {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 18px;
+        height: 18px;
+    }
+
+    .icon {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        transition: opacity var(--dur-base) var(--ease-out),
+            transform var(--dur-base) var(--ease-spring);
+    }
+
+    /* 浅色下显示太阳，深色下显示月亮：图标交替时同时动 opacity 与 transform，
+       读起来像一个物体转过去，而不是两张图硬切。 */
+    .sun {
+        opacity: 1;
+        transform: rotate(0deg) scale(1);
+    }
+
+    .moon {
+        opacity: 0;
+        transform: rotate(-70deg) scale(0.5);
+    }
+
+    :global(:root[data-theme='dark']) .sun {
+        opacity: 0;
+        transform: rotate(70deg) scale(0.5);
+    }
+
+    :global(:root[data-theme='dark']) .moon {
+        opacity: 1;
+        transform: rotate(0deg) scale(1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :global(:root:not([data-theme='light'])) .sun {
+            opacity: 0;
+            transform: rotate(70deg) scale(0.5);
+        }
+
+        :global(:root:not([data-theme='light'])) .moon {
+            opacity: 1;
+            transform: rotate(0deg) scale(1);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .icon {
+            transition: opacity var(--dur-fast) linear;
+            transform: none !important;
+        }
+
+        .theme-toggle:active {
+            transform: none;
+        }
+    }
+</style>
