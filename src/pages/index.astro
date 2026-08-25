@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
+import PostCard from '../components/PostCard.astro';
 import { getCollection } from 'astro:content';
 
 const posts = (await getCollection('blog')).sort(
@@ -11,229 +12,90 @@ const posts = (await getCollection('blog')).sort(
 <Layout title="XIE YIFAN" description="XIE YIFAN — 分享技术、设计与生活随笔">
     <Nav active="首页" />
 
-    <main>
-        <section id="hero">
-            <h1>XIE YIFAN</h1>
-            <p class="subtitle">
+    <main id="main" class="u-container">
+        <section class="hero u-stagger">
+            <p class="u-label" style="--i:0">FULL-STACK DEVELOPER · CHINA</p>
+            <h1 style="--i:1">XIE YIFAN</h1>
+            <p class="subtitle" style="--i:2">
                 在这里分享关于 <strong>技术分享</strong>、<strong>设计思维</strong> 以及 <strong>生活随笔</strong>。
                 追求代码的优雅，也热爱生活的细腻。
             </p>
-            <div id="actions">
-                <a class="button primary" href="/posts">浏览文章</a>
-                <a class="button secondary" href="https://github.com/XieYifan1201">Github</a>
+            <div class="actions" style="--i:3">
+                <a class="u-btn u-btn--primary" href="/posts">浏览文章</a>
+                <a class="u-btn u-btn--ghost" href="https://github.com/XieYifan1201" target="_blank" rel="noopener">
+                    Github
+                </a>
             </div>
         </section>
 
         {posts.length > 0 && (
-        <section id="posts-section">
-            <h2 class="section-title">最新文章 / Latest Posts</h2>
-            <div class="posts-grid">
-                {posts.map((post) => (
-                    <a href={`/posts/${post.id}`} class="post-card">
-                        <div class="post-meta">
-                            <time>{post.data.date.toLocaleDateString('zh-CN')}</time>
-                            {post.data.tags.map((tag) => (
-                                <span class="tag">{tag}</span>
-                            ))}
-                        </div>
-                        <h3>{post.data.title}</h3>
-                        <p>{post.data.description}</p>
-                        <span class="read-more">阅读全文 →</span>
-                    </a>
-                ))}
-            </div>
-        </section>
+            <section class="posts">
+                <div class="u-section-head">
+                    <span class="idx">01</span>
+                    <h2 class="title">最新文章 / LATEST POSTS</h2>
+                </div>
+
+                <div class="posts-grid u-stagger">
+                    {posts.map((post, i) => (
+                        <PostCard
+                            href={`/posts/${post.id}`}
+                            title={post.data.title}
+                            description={post.data.description}
+                            date={post.data.date}
+                            tags={post.data.tags}
+                            index={i}
+                        />
+                    ))}
+                </div>
+            </section>
         )}
     </main>
 </Layout>
 
 <style>
-    main {
+    .hero {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        padding: 0;
-        max-width: var(--site-content-width);
-        margin: 0 auto;
-        width: calc(100% - var(--site-page-gutter-total));
-    }
-
-    #hero {
-        min-height: 70vh;
-        width: 100%;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
+        align-items: flex-start;
         justify-content: center;
-        align-items: center;
-        padding: 0 1rem;
-        animation: fadeInUp 0.8s ease-out;
+        min-height: min(68svh, 560px);
+        padding-block: var(--sp-8);
     }
 
-    h1 {
-        font-size: clamp(3rem, 6vw, 5rem);
-        font-weight: 900;
-        letter-spacing: -2px;
-        line-height: 1.1;
-        margin-bottom: 1.5rem;
-        color: #000;
+    .hero h1 {
+        margin-top: var(--sp-3);
+        font-size: var(--fs-display);
+        line-height: var(--lh-display);
+        letter-spacing: var(--ls-display);
     }
 
     .subtitle {
-        font-size: 1.15rem;
-        color: #666;
-        line-height: 1.7;
-        margin-bottom: 2.5rem;
-        max-width: 760px;
+        max-width: var(--w-narrow);
+        margin-top: var(--sp-4);
+        color: var(--text-2);
+        font-size: var(--fs-body);
     }
 
-    #actions {
+    .actions {
         display: flex;
-        gap: 1rem;
-        justify-content: center;
+        flex-wrap: wrap;
+        gap: var(--sp-3);
+        margin-top: var(--sp-6);
     }
 
-    .button {
-        padding: 0.8rem 2rem;
-        border-radius: 50px;
-        font-weight: 600;
-        text-decoration: none;
-        font-size: 0.9rem;
-        transition: all 0.3s;
-    }
-
-    .button.primary {
-        background: #2563eb;
-        color: #fff;
-        box-shadow: var(--shadow-button);
-    }
-
-    .button.primary:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-button-hover);
-    }
-
-    .button.secondary {
-        border: 1px solid #ddd;
-        color: #333;
-        box-shadow: var(--shadow-button-neutral);
-    }
-
-    .button.secondary:hover {
-        background: #f5f5f5;
-        border-color: #bbb;
-        box-shadow: var(--shadow-card);
-    }
-
-    #posts-section {
-        width: 100%;
-        padding: 3rem 0 6rem;
-        animation: fadeInUp 0.8s ease-out 0.15s both;
-    }
-
-    .section-title {
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        color: #999;
-        margin-bottom: 2rem;
-        font-weight: 600;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 0.5vh;
-        border-left: 3px solid #2563eb;
-        padding-left: 10px;
+    .posts {
+        padding-bottom: var(--sp-9);
     }
 
     .posts-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--sp-4);
     }
 
-    .post-card {
-        background: #fff;
-        border: 1px solid #eee;
-        border-radius: 16px;
-        padding: 1.8rem;
-        text-decoration: none;
-        color: inherit;
-        transition: all 0.3s;
-        display: flex;
-        flex-direction: column;
-        box-shadow: var(--shadow-card);
-    }
-
-    .post-card:hover {
-        border-color: #2563eb;
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-card-hover);
-    }
-
-    .post-meta {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        margin-bottom: 0.8rem;
-        flex-wrap: wrap;
-    }
-
-    .post-meta time {
-        font-size: 0.8rem;
-        color: #999;
-    }
-
-    .tag {
-        background: #f0f4ff;
-        border: 1px solid #dbeafe;
-        color: #2563eb;
-        padding: 2px 10px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-    }
-
-    .post-card h3 {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        line-height: 1.4;
-        color: #000;
-    }
-
-    .post-card p {
-        font-size: 0.85rem;
-        color: #666;
-        line-height: 1.6;
-        margin-bottom: 1rem;
-        flex: 1;
-    }
-
-    .read-more {
-        font-size: 0.85rem;
-        color: #2563eb;
-        font-weight: 600;
-        transition: color 0.3s;
-    }
-
-    .post-card:hover .read-more {
-        color: #1d4ed8;
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
+    @media (max-width: 760px) {
+        .posts-grid {
+            grid-template-columns: 1fr;
         }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @media (max-width: 900px) {
-        main { padding: 0; }
-        h1 { font-size: 2.5rem; }
-        #actions { flex-direction: column; width: 100%; }
-        .button { width: 100%; text-align: center; }
-        .posts-grid { grid-template-columns: 1fr; }
     }
 </style>

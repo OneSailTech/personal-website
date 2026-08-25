@@ -2,127 +2,181 @@
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
 
-const name = "谢怡帆";
-const email = "onesailtech@gmail.com";
-const avatar = "/profile.webp";
+const name = '谢怡帆';
+const email = 'onesailtech@gmail.com';
+// 头像用带透明通道的这份：profile.webp 是不透明白底（留给社交分享卡片），
+// 直接放在页面上深色模式会变成一块白方块。
+const portrait = '/portrait.webp';
 
 const techStack = [
-    "Java",
-    "Kotlin",
-    "Jetpack Compose",
-    "Flutter",
-    "Spring Boot",
-    "MySQL",
-    "Node.js",
-    "Vue",
-    "Git",
-    "Figma",
-    "Photoshop",
+    'Java',
+    'Kotlin',
+    'Jetpack Compose',
+    'Flutter',
+    'Spring Boot',
+    'MySQL',
+    'Node.js',
+    'Vue',
+    'Git',
+    'Figma',
+    'Photoshop',
 ];
 
 const awards = [
-    { title: "2024至2025学年国家奖学金", certIndex: 0 },
-    { title: "2023至2024学年国家励志奖学金", certIndex: 1 },
-    { title: "计算机程序设计员职业技能等级 高级技师", certIndex: 2 },
-    { title: "计算机程序设计员职业技能等级 技师", certIndex: 3 },
-    { title: "入围第48届世界技能大赛移动应用开发中国集训队", certIndex: -1 },
-    { title: "中华人民共和国第三届职业技能大赛移动应用开发赛项 第六名", certIndex: 4 },
-    { title: "一带一路暨金砖国家技能发展与技术创新大赛——Web赛项 三等奖", certIndex: 5 },
-    { title: "江西省第二届职业技能大赛移动应用开发赛项 第一名", certIndex: 6 },
-    { title: "江西省第一届职业技能大赛网站设计与开发赛项 第二名", certIndex: 7 },
-    { title: "九江市第三届职业技能大赛移动应用开发赛项 第一名", certIndex: 8 },
-    { title: "学校奖学金", certIndex: 9 },
-    { title: "优秀毕业生", certIndex: 10 },
+    { title: '2024至2025学年国家奖学金', certIndex: 0 },
+    { title: '2023至2024学年国家励志奖学金', certIndex: 1 },
+    { title: '计算机程序设计员职业技能等级 高级技师', certIndex: 2 },
+    { title: '计算机程序设计员职业技能等级 技师', certIndex: 3 },
+    { title: '入围第48届世界技能大赛移动应用开发中国集训队', certIndex: -1 },
+    { title: '中华人民共和国第三届职业技能大赛移动应用开发赛项 第六名', certIndex: 4 },
+    { title: '一带一路暨金砖国家技能发展与技术创新大赛——Web赛项 三等奖', certIndex: 5 },
+    { title: '江西省第二届职业技能大赛移动应用开发赛项 第一名', certIndex: 6 },
+    { title: '江西省第一届职业技能大赛网站设计与开发赛项 第二名', certIndex: 7 },
+    { title: '九江市第三届职业技能大赛移动应用开发赛项 第一名', certIndex: 8 },
+    { title: '学校奖学金', certIndex: 9 },
+    { title: '优秀毕业生', certIndex: 10 },
 ];
 
 const education = [
-    { school: "江西工程学院", major: "计算机科学与技术（本科）", period: "2026 - 2028" },
-    { school: "江西职业技术大学", major: "移动互联应用技术（专科）", period: "2023 - 2026" },
-    { school: "江西省电子信息工程学校", major: "计算机网络技术（中专）", period: "2020 - 2023" },
+    { school: '江西工程学院', major: '计算机科学与技术（本科）', period: '2026 - 2028' },
+    { school: '江西职业技术大学', major: '移动互联应用技术（专科）', period: '2023 - 2026' },
+    { school: '江西省电子信息工程学校', major: '计算机网络技术（中专）', period: '2020 - 2023' },
 ];
 
 const allCerts = [
-    "/certificates/National_Scholarship.webp",
-    "/certificates/National_Inspirational_Scholarship.webp",
-    "/certificates/Senior_Technician.webp",
-    "/certificates/technician.webp",
-    "/certificates/The_3rd_China_Vocational_Skills_Competition.webp",
-    "/certificates/Belt&Road_and_BRICS_Skills_Development_and_Technology_Innovation_Competition.webp",
-    "/certificates/The_2nd_Vocational_Skills_Competition_of_Jiangxi_Province.webp",
-    "/certificates/The_First_Vocational_Skills_Competition_of_Jiangxi_Province.webp",
-    "/certificates/The_3rd_Vocational_Skills_Competition_of_Jiujiang_City.webp",
-    "/certificates/school_scholarship.webp",
-    "/certificates/Outstanding_Graduate.webp",
+    '/certificates/National_Scholarship.webp',
+    '/certificates/National_Inspirational_Scholarship.webp',
+    '/certificates/Senior_Technician.webp',
+    '/certificates/technician.webp',
+    '/certificates/The_3rd_China_Vocational_Skills_Competition.webp',
+    '/certificates/Belt&Road_and_BRICS_Skills_Development_and_Technology_Innovation_Competition.webp',
+    '/certificates/The_2nd_Vocational_Skills_Competition_of_Jiangxi_Province.webp',
+    '/certificates/The_First_Vocational_Skills_Competition_of_Jiangxi_Province.webp',
+    '/certificates/The_3rd_Vocational_Skills_Competition_of_Jiujiang_City.webp',
+    '/certificates/school_scholarship.webp',
+    '/certificates/Outstanding_Graduate.webp',
 ];
 ---
 
-<Layout title="关于 - XIE YIFAN" description="关于 XIE YIFAN — 个人介绍、荣誉与证书">
-    <link rel="stylesheet" href="/viewer.min.css">
+<Layout title="关于 — XIE YIFAN" description="关于 XIE YIFAN — 个人介绍、荣誉与证书">
+    <link rel="stylesheet" href="/viewer.min.css" />
 
     <Nav active="关于" />
 
-    <div class="layout">
-        <section class="left-panel">
-            <div class="header">
-                <h1 class="name">{name}</h1>
-                <span class="email-wrapper">
+    <main id="main" class="u-container layout">
+        <div class="left u-stagger">
+            <header class="ident" style="--i:0">
+                <p class="u-label">ABOUT</p>
+                <h1>{name}</h1>
+                <p class="tagline">全栈开发 · 移动应用开发 · 界面设计</p>
+
+                <div class="email-row">
                     <a class="email" href={`mailto:${email}`}>{email}</a>
-                    <span class="copy-icon" data-email={email} title="复制邮箱">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <button
+                        class="copy-btn"
+                        id="copy-email"
+                        type="button"
+                        data-email={email}
+                        aria-label="复制邮箱地址"
+                        title="复制邮箱地址"
+                    >
+                        <svg class="ic ic-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="9" y="9" width="13" height="13" rx="2.5"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
-                    </span>
-                </span>
-            </div>
-
-            <div>
-                <div class="section-title">技术栈 / Technical Stack</div>
-                <div class="tech-stack">
-                    {techStack.map(s => <span>{s}</span>)}
+                        <svg class="ic ic-done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M20 6.5 9.5 17 4 11.5"></path>
+                        </svg>
+                        <svg class="ic ic-fail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M18 6 6 18M6 6l12 12"></path>
+                        </svg>
+                    </button>
                 </div>
-            </div>
+            </header>
 
-            <div>
-                <div class="section-title">获奖列表 / Awards</div>
-                <ul class="awards-grid">
+            <section style="--i:1">
+                <div class="u-section-head">
+                    <span class="idx">01</span>
+                    <h2 class="title">技术栈 / STACK</h2>
+                </div>
+                <ul class="stack">
+                    {techStack.map((s) => <li>{s}</li>)}
+                </ul>
+            </section>
+
+            <section style="--i:2">
+                <div class="u-section-head">
+                    <span class="idx">02</span>
+                    <h2 class="title">获奖列表 / AWARDS</h2>
+                </div>
+                <ul class="awards">
                     {awards.map((award) => (
-                        <li class={`award-item${award.certIndex >= 0 ? ' has-cert' : ''}`} data-cert-index={award.certIndex}>
-                            {award.title}
+                        <li>
+                            {award.certIndex >= 0 ? (
+                                <button
+                                    class="award has-cert"
+                                    type="button"
+                                    data-cert-index={award.certIndex}
+                                >
+                                    <span class="award-title">{award.title}</span>
+                                    <svg class="award-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M5.5 10.5 10.5 5.5M6 5.5h4.5V10"></path>
+                                    </svg>
+                                </button>
+                            ) : (
+                                <span class="award">
+                                    <span class="award-title">{award.title}</span>
+                                </span>
+                            )}
                         </li>
                     ))}
                 </ul>
-            </div>
+                <p class="hint">带 ↗ 的条目可以点开查看证书</p>
+            </section>
 
-            <div>
-                <div class="section-title">教育背景 / Education</div>
-                <div class="edu-list">
-                    {education.map(e => (
-                        <div class="edu-item">
-                            <div>
-                                <div class="edu-school">{e.school}</div>
-                                <div class="edu-major">{e.major}</div>
-                            </div>
-                            <div class="edu-time">{e.period}</div>
-                        </div>
-                    ))}
+            <section style="--i:3">
+                <div class="u-section-head">
+                    <span class="idx">03</span>
+                    <h2 class="title">教育背景 / EDUCATION</h2>
                 </div>
+                <ul class="edu">
+                    {education.map((e) => (
+                        <li class="edu-item">
+                            <div>
+                                <p class="edu-school">{e.school}</p>
+                                <p class="edu-major">{e.major}</p>
+                            </div>
+                            <p class="u-label edu-period">{e.period}</p>
+                        </li>
+                    ))}
+                </ul>
+            </section>
+        </div>
+
+        <aside class="portrait-panel u-fade">
+            <div class="portrait-stage">
+                <img
+                    class="portrait"
+                    src={portrait}
+                    alt={`${name}的头像插画`}
+                    width="512"
+                    height="512"
+                    fetchpriority="high"
+                />
             </div>
-        </section>
+        </aside>
+    </main>
 
-        <section class="right-panel">
-            <img src={avatar} alt="Profile" class="portrait" />
-        </section>
-    </div>
-
-    <div id="gallery">
-        {allCerts.map(src => <img src={src} alt="" />)}
+    <div id="gallery" aria-hidden="true">
+        {allCerts.map((src) => <img src={src} alt="" />)}
     </div>
 
     <script is:inline src="/viewer.min.js"></script>
     <script>
-        const galleryElement = document.getElementById('gallery');
+        import { copyText } from '../scripts/copy';
 
+        // 证书浏览器。图片池藏在 #gallery 里，点获奖条目时按索引打开。
+        const galleryElement = document.getElementById('gallery');
         const viewer = new Viewer(galleryElement, {
             url: 'src',
             toolbar: true,
@@ -135,290 +189,344 @@ const allCerts = [
             fullscreen: true,
         });
 
-        document.addEventListener('click', function (e) {
+        // 点遮罩关闭
+        document.addEventListener('click', (e) => {
             const container = document.querySelector('.viewer-container');
-            if (container && container.style.display !== 'none' && (e.target === container || e.target === container.querySelector('.viewer-mask'))) {
+            if (!container || container.style.display === 'none') return;
+            if (e.target === container || e.target === container.querySelector('.viewer-mask')) {
                 viewer.hide();
             }
         });
 
-        document.querySelectorAll('.award-item.has-cert').forEach(item => {
-            item.addEventListener('click', function () {
-                const index = parseInt(this.getAttribute('data-cert-index'));
-                if (!isNaN(index) && index >= 0) {
-                    viewer.view(index);
-                }
+        document.querySelectorAll('.award.has-cert').forEach((item) => {
+            item.addEventListener('click', () => {
+                const index = Number(item.getAttribute('data-cert-index'));
+                if (Number.isInteger(index) && index >= 0) viewer.view(index);
             });
         });
 
-        document.querySelector('.copy-icon')?.addEventListener('click', function () {
-            const email = this.getAttribute('data-email');
-            navigator.clipboard.writeText(email).then(() => {
-                const original = this.innerHTML;
-                this.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-                this.classList.add('copied');
-                setTimeout(() => {
-                    this.innerHTML = original;
-                    this.classList.remove('copied');
-                }, 1500);
-            });
+        // 复制邮箱：成功打勾、失败打叉，两种反馈分开（§16）
+        const copyBtn = document.getElementById('copy-email');
+        let resetTimer: number | undefined;
+
+        copyBtn?.addEventListener('click', async () => {
+            const value = copyBtn.getAttribute('data-email') ?? '';
+            const ok = await copyText(value);
+
+            copyBtn.classList.remove('is-copied', 'is-failed');
+            copyBtn.classList.add(ok ? 'is-copied' : 'is-failed');
+            copyBtn.setAttribute('aria-label', ok ? '邮箱地址已复制' : '复制失败，请手动选择邮箱地址');
+
+            window.clearTimeout(resetTimer);
+            resetTimer = window.setTimeout(() => {
+                copyBtn.classList.remove('is-copied', 'is-failed');
+                copyBtn.setAttribute('aria-label', '复制邮箱地址');
+            }, 1500);
         });
     </script>
 </Layout>
 
 <style>
+    /* ---------- 两栏骨架 ----------
+       原先左右栏用百分比 + vh/vw 内边距，窗口一变形整页跟着变形。
+       现在换成 grid + rem 令牌，只有列宽随宽度走，纵向节奏是固定的。 */
+
     .layout {
-        display: flex;
-        width: 100%;
-        min-height: calc(100vh - 80px);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 0.6fr);
+        gap: var(--sp-8);
+        align-items: start;
+        padding-block: var(--sp-7) var(--sp-9);
     }
 
-    .left-panel {
-        flex: 0 0 60%;
-        padding: 6vh 3vw 6vh 8vw;
+    .left {
         display: flex;
         flex-direction: column;
-        gap: 4vh;
+        gap: var(--sp-7);
+        min-width: 0;
     }
 
-    .header .name {
-        font-size: clamp(3rem, 5vw, 5rem);
-        font-weight: 900;
-        letter-spacing: -2px;
-        margin-bottom: 0.5vh;
+    /* ---------- 身份区 ---------- */
+
+    .ident h1 {
+        margin-top: var(--sp-3);
+        font-size: var(--fs-h1);
+        line-height: var(--lh-h1);
+        letter-spacing: var(--ls-h1);
     }
 
-    .header .email {
-        font-size: 1.1rem;
-        color: #666;
-        text-decoration: none;
-        transition: color 0.2s;
+    .tagline {
+        margin-top: var(--sp-2);
+        color: var(--text-2);
+        font-size: var(--fs-sm);
     }
 
-    .header .email:hover {
-        color: #2563eb;
-    }
-
-    .header .email-wrapper {
+    .email-row {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: var(--sp-2);
+        margin-top: var(--sp-4);
     }
 
-    .header .copy-icon {
-        display: inline-flex;
-        align-items: center;
-        cursor: pointer;
-        color: #999;
-        transition: color 0.2s;
-        line-height: 1;
+    .email {
+        color: var(--text-2);
+        font-family: var(--font-mono);
+        font-size: var(--fs-sm);
     }
 
-    .header .copy-icon:hover {
-        color: #2563eb;
+    .email:hover {
+        color: var(--accent);
     }
 
-    .header .copy-icon.copied {
-        color: #16a34a;
+    /* 复制按钮：三个图标叠在一起，靠 class 切换，不动 innerHTML */
+    .copy-btn {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--r-sm);
+        color: var(--text-3);
+        transition: background-color var(--dur-fast) var(--ease-out),
+            color var(--dur-fast) var(--ease-out),
+            transform var(--dur-press) var(--ease-out);
     }
 
-    .section-title {
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        color: #999;
-        margin-bottom: 1.5vh;
-        font-weight: 600;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 0.5vh;
-        border-left: 3px solid #2563eb;
-        padding-left: 10px;
+    .copy-btn:hover {
+        background: var(--surface-2);
+        color: var(--text-1);
     }
 
-    .tech-stack {
+    .copy-btn:active {
+        transform: scale(0.9);
+    }
+
+    .copy-btn.is-copied {
+        color: var(--success);
+    }
+
+    .copy-btn.is-failed {
+        color: var(--danger);
+    }
+
+    .ic {
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        opacity: 0;
+        transform: scale(0.7);
+        transition: opacity var(--dur-fast) var(--ease-out),
+            transform var(--dur-base) var(--ease-spring);
+    }
+
+    .ic-copy {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .copy-btn.is-copied .ic-copy,
+    .copy-btn.is-failed .ic-copy {
+        opacity: 0;
+        transform: scale(0.7);
+    }
+
+    .copy-btn.is-copied .ic-done,
+    .copy-btn.is-failed .ic-fail {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    /* ---------- 技术栈 ----------
+       这些是陈述性内容，不可点，所以不给悬停位移：
+       会动的东西必须是能操作的东西，否则只是噪声。 */
+
+    .stack {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: var(--sp-2);
     }
 
-    .tech-stack span {
-        font-size: 0.9rem;
-        padding: 6px 16px;
-        border: 1px solid #ddd;
-        border-radius: 50px;
-        color: #333;
-        transition: transform 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
-        cursor: default;
-        box-shadow: var(--shadow-button-neutral);
+    .stack li {
+        padding: 0.34rem 0.75rem;
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-full);
+        background: var(--surface);
+        color: var(--text-2);
+        font-family: var(--font-mono);
+        font-size: var(--fs-xs);
     }
 
-    .tech-stack span:hover {
-        transform: translateY(-3px);
-        background: #2563eb;
-        color: #fff;
-        border-color: #2563eb;
-        box-shadow: var(--shadow-button-hover);
-    }
+    /* ---------- 获奖列表 ---------- */
 
-    .awards-grid {
+    .awards {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5vh 2vw;
-        list-style: none;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 2px var(--sp-5);
     }
 
-    .award-item {
-        font-size: 0.95rem;
-        color: #333;
+    .award {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
+        gap: var(--sp-2);
+        width: 100%;
+        padding: var(--sp-2) 0;
         border-bottom: 1px solid transparent;
-        padding-bottom: 2px;
-        transition: all 0.2s;
-        line-height: 1.4;
+        color: var(--text-2);
+        font-size: var(--fs-sm);
+        line-height: var(--lh-tight);
+        text-align: left;
     }
 
-    .award-item.has-cert {
+    button.award {
         cursor: pointer;
+        transition: color var(--dur-fast) var(--ease-out),
+            border-color var(--dur-fast) var(--ease-out),
+            transform var(--dur-press) var(--ease-out);
+        transform-origin: left center;
     }
 
-    .award-item.has-cert:hover {
-        color: #2563eb;
-        border-bottom-color: #2563eb;
-        transform: translateX(3px);
+    button.award:hover {
+        color: var(--text-1);
+        border-bottom-color: var(--hairline-strong);
     }
 
-    .award-item.has-cert::after {
-        content: '↗';
-        color: #ccc;
-        font-size: 0.8rem;
-        margin-left: 8px;
+    button.award:active {
+        transform: scale(0.99);
+    }
+
+    .award-icon {
         flex-shrink: 0;
+        width: 15px;
+        height: 15px;
+        color: var(--text-3);
+        transition: color var(--dur-fast) var(--ease-out),
+            transform var(--dur-base) var(--ease-spring);
     }
 
-    .edu-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5vh;
+    button.award:hover .award-icon {
+        color: var(--accent);
+        /* §8：往它要去的方向让一步 */
+        transform: translate(2px, -2px);
+    }
+
+    .hint {
+        margin-top: var(--sp-3);
+        color: var(--text-3);
+        font-size: var(--fs-xs);
+    }
+
+    /* ---------- 教育背景 ---------- */
+
+    .edu {
+        display: grid;
+        gap: var(--sp-4);
     }
 
     .edu-item {
         display: flex;
+        align-items: baseline;
         justify-content: space-between;
-        align-items: flex-end;
-        border-left: 4px solid #2563eb;
-        padding-left: 12px;
-        transition: transform 0.2s;
-    }
-
-    .edu-item:hover {
-        transform: translateX(5px);
+        gap: var(--sp-4);
+        padding-left: var(--sp-4);
+        border-left: 2px solid var(--accent);
     }
 
     .edu-school {
-        font-weight: bold;
-        font-size: 1.05rem;
+        font-size: var(--fs-body);
+        font-weight: 600;
+        letter-spacing: -0.01em;
     }
 
     .edu-major {
-        font-size: 0.9rem;
-        color: #666;
         margin-top: 2px;
+        color: var(--text-2);
+        font-size: var(--fs-sm);
     }
 
-    .edu-time {
-        font-size: 0.9rem;
-        color: #999;
+    .edu-period {
+        flex-shrink: 0;
     }
 
-    .right-panel {
-        flex: 0 0 40%;
-        height: calc(100vh - 80px);
+    /* ---------- 头像 ----------
+       乱动的根因是尺寸绑在视口高度上：容器 calc(100vh - 80px)、图片 90vh，
+       两者不一致，窗口高度一变裁切位置就跟着漂，再叠一个带回弹的悬停缩放。
+       现在改成固定 1:1 的舞台 + 只吃宽度，纵向完全不参与计算；
+       悬停缩放整条删掉，入场也只做透明度，不给 sticky 元素叠 transform。 */
+
+    .portrait-panel {
         position: sticky;
-        top: 80px;
-        display: flex;
-        align-items: flex-end;
-        justify-content: flex-end;
+        top: calc(var(--nav-h) + var(--sp-6));
+        display: grid;
+        place-items: center;
+    }
+
+    .portrait-stage {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: min(100%, 340px);
+        aspect-ratio: 1;
+    }
+
+    /* 一层很淡的信号色光晕：抠图落在纯色背景上时给它一点依托 */
+    .portrait-stage::before {
+        content: '';
+        position: absolute;
+        inset: 6%;
+        border-radius: var(--r-full);
+        background: radial-gradient(circle, var(--accent-subtle) 0%, transparent 70%);
     }
 
     .portrait {
-        width: auto;
-        height: 90vh;
-        max-width: 100%;
-        object-fit: contain;
-        object-position: bottom;
-        transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .portrait:hover {
-        transform: scale(1.02);
+        position: relative;
+        width: 100%;
+        height: auto;
     }
 
     #gallery {
         display: none;
     }
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .layout {
-        animation: fadeIn 0.8s ease-out;
-    }
-
-    .left-panel > * {
-        opacity: 0;
-        animation: fadeInUp 0.6s ease-out forwards;
-    }
-
-    .left-panel > *:nth-child(1) { animation-delay: 0.1s; }
-    .left-panel > *:nth-child(2) { animation-delay: 0.2s; }
-    .left-panel > *:nth-child(3) { animation-delay: 0.3s; }
-    .left-panel > *:nth-child(4) { animation-delay: 0.4s; }
-    .left-panel > *:nth-child(5) { animation-delay: 0.5s; }
-
-    .right-panel {
-        opacity: 0;
-        animation: fadeInUp 0.6s ease-out 0.3s forwards;
-    }
+    /* ---------- 窄屏：头像回到顶部，与原来的 column-reverse 顺序一致 ---------- */
 
     @media (max-width: 900px) {
         .layout {
-            flex-direction: column-reverse;
-            display: flex;
+            grid-template-columns: 1fr;
+            gap: var(--sp-6);
+            padding-block: var(--sp-6) var(--sp-8);
         }
-        .left-panel {
-            flex: none;
-            width: 100%;
-            padding: 4vh 6vw 10vh 6vw;
+
+        .portrait-panel {
+            position: static;
+            order: -1;
         }
-        .header {
-            text-align: center;
+
+        .portrait-stage {
+            width: min(100%, 220px);
         }
-        .right-panel {
-            flex: none;
-            width: 100%;
-            height: 60vh;
-            position: relative;
-            top: 0;
-            justify-content: center;
-        }
-        .portrait {
-            height: 100%;
-        }
-        .awards-grid {
+
+        .awards {
             grid-template-columns: 1fr;
         }
+    }
+
+    @media (max-width: 520px) {
         .edu-item {
             flex-direction: column;
             align-items: flex-start;
+            gap: var(--sp-1);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .copy-btn:active,
+        button.award:active {
+            transform: none;
+        }
+
+        button.award:hover .award-icon {
+            transform: none;
         }
     }
 </style>
