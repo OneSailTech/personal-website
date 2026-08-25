@@ -1,0 +1,453 @@
+/* ============================================================
+   工具页共用的控件样式。六个工具页原先各写一套输入框、下拉框、
+   按钮和状态提示，颜色也各不相同；统一到这里，全部走语义令牌。
+   类名前缀 t- = tool。
+   ============================================================ */
+
+/* ---------- 面板与字段 ---------- */
+
+.t-panel {
+    display: grid;
+    gap: var(--sp-5);
+    padding: var(--sp-5);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+}
+
+.t-row {
+    display: grid;
+    gap: var(--sp-4);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+}
+
+.t-field {
+    display: grid;
+    gap: var(--sp-2);
+    min-width: 0;
+}
+
+.t-field > label,
+.t-legend {
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+    font-weight: 500;
+}
+
+.t-hint {
+    color: var(--text-3);
+    font-size: var(--fs-xs);
+    line-height: var(--lh-tight);
+}
+
+/* ---------- 输入控件 ---------- */
+
+.t-input,
+.t-select,
+.t-textarea {
+    width: 100%;
+    padding: 0.62rem var(--sp-3);
+    border: 1px solid var(--hairline-strong);
+    border-radius: var(--r-sm);
+    background: var(--surface-2);
+    color: var(--text-1);
+    font-size: var(--fs-sm);
+    transition: border-color var(--dur-fast) var(--ease-out),
+        background-color var(--dur-fast) var(--ease-out);
+}
+
+.t-input,
+.t-textarea {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+}
+
+.t-textarea {
+    min-height: 9rem;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.t-select {
+    cursor: pointer;
+    /* 深浅模式下都用系统原生箭头，避免自绘图标在深色里发白 */
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+        linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: calc(100% - 1.05rem) 55%, calc(100% - 0.8rem) 55%;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: var(--sp-8);
+}
+
+.t-input:hover,
+.t-select:hover,
+.t-textarea:hover {
+    border-color: var(--text-3);
+}
+
+.t-input:focus,
+.t-select:focus,
+.t-textarea:focus {
+    border-color: var(--accent);
+    background: var(--surface);
+}
+
+.t-select option:disabled {
+    color: var(--text-3);
+}
+
+.t-color {
+    width: 100%;
+    height: 42px;
+    padding: 3px;
+    border: 1px solid var(--hairline-strong);
+    border-radius: var(--r-sm);
+    background: var(--surface-2);
+    cursor: pointer;
+}
+
+/* ---------- 滑块 ---------- */
+
+.t-range {
+    width: 100%;
+    height: 22px;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.t-range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: var(--r-full);
+    background: var(--surface-sunken);
+}
+
+.t-range::-moz-range-track {
+    height: 4px;
+    border-radius: var(--r-full);
+    background: var(--surface-sunken);
+}
+
+.t-range::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    margin-top: -7px;
+    border-radius: var(--r-full);
+    background: var(--accent);
+    border: 2px solid var(--surface);
+    box-shadow: var(--shadow-1);
+    transition: transform var(--dur-press) var(--ease-out);
+}
+
+.t-range::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: var(--r-full);
+    background: var(--accent);
+    border: 2px solid var(--surface);
+}
+
+/* §1：按下就有反馈，不等松手 */
+.t-range:active::-webkit-slider-thumb {
+    transform: scale(1.15);
+}
+
+/* ---------- 拖放区 ---------- */
+
+.t-drop {
+    display: grid;
+    place-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-8) var(--sp-5);
+    border: 1px dashed var(--hairline-strong);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color var(--dur-fast) var(--ease-out),
+        background-color var(--dur-fast) var(--ease-out),
+        transform var(--dur-press) var(--ease-out);
+}
+
+.t-drop:hover {
+    border-color: var(--accent);
+    background: var(--surface-2);
+}
+
+.t-drop:active {
+    transform: scale(0.995);
+}
+
+/* 拖到上方时把方向感做足：边框变实、底色变信号色 */
+.t-drop.is-over {
+    border-style: solid;
+    border-color: var(--accent);
+    background: var(--accent-subtle);
+}
+
+.t-drop svg {
+    width: 34px;
+    height: 34px;
+    color: var(--text-3);
+    transition: color var(--dur-fast) var(--ease-out),
+        transform var(--dur-base) var(--ease-spring);
+}
+
+.t-drop:hover svg,
+.t-drop.is-over svg {
+    color: var(--accent);
+}
+
+.t-drop.is-over svg {
+    /* §8：往内容要去的方向让一步 */
+    transform: translateY(3px);
+}
+
+.t-drop-title {
+    color: var(--text-1);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+}
+
+/* ---------- 文件列表 ---------- */
+
+.t-files {
+    display: grid;
+    gap: var(--sp-2);
+}
+
+.t-file {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    background: var(--surface);
+}
+
+.t-file-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-sm);
+}
+
+.t-file-size {
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+}
+
+.t-file-remove {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--r-sm);
+    color: var(--text-3);
+    transition: background-color var(--dur-fast) var(--ease-out),
+        color var(--dur-fast) var(--ease-out),
+        transform var(--dur-press) var(--ease-out);
+}
+
+.t-file-remove:hover {
+    background: var(--surface-2);
+    color: var(--danger);
+}
+
+.t-file-remove:active {
+    transform: scale(0.88);
+}
+
+.t-file-remove svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ---------- 操作区 ---------- */
+
+.t-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+}
+
+.t-actions .u-btn {
+    flex: 1 1 auto;
+}
+
+/* ---------- 状态反馈（§16：进行中 / 完成 / 提醒 / 错误 是四类，各有各的样子） ---------- */
+
+.t-status {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-2);
+    min-height: 1.4em;
+    font-size: var(--fs-xs);
+    line-height: var(--lh-tight);
+    color: var(--text-2);
+}
+
+.t-status:empty {
+    display: none;
+}
+
+.t-status::before {
+    content: '';
+    flex-shrink: 0;
+    width: 7px;
+    height: 7px;
+    margin-top: 0.45em;
+    border-radius: var(--r-full);
+    background: currentColor;
+}
+
+.t-status.is-busy {
+    color: var(--text-2);
+}
+
+.t-status.is-busy::before {
+    animation: t-pulse 1.1s var(--ease-in-out) infinite;
+}
+
+.t-status.is-done {
+    color: var(--success);
+}
+
+.t-status.is-warn {
+    color: var(--warning);
+}
+
+.t-status.is-error {
+    color: var(--danger);
+}
+
+@keyframes t-pulse {
+    0%,
+    100% {
+        opacity: 0.35;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* 进度条：转换多个文件时给出"到哪了"，而不是只有一个转圈 */
+.t-progress {
+    height: 3px;
+    border-radius: var(--r-full);
+    background: var(--surface-sunken);
+    overflow: hidden;
+}
+
+.t-progress-bar {
+    height: 100%;
+    width: 100%;
+    border-radius: var(--r-full);
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--dur-base) var(--ease-out);
+}
+
+/* ---------- 结果区 ---------- */
+
+.t-result {
+    display: grid;
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    background: var(--surface-2);
+}
+
+.t-code {
+    padding: var(--sp-3);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-sm);
+    background: var(--surface);
+    color: var(--text-1);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    user-select: all;
+}
+
+.t-preview {
+    display: grid;
+    place-items: center;
+    padding: var(--sp-4);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    /* 棋盘底：让透明区域看得出来是透明，而不是白色 */
+    background-color: var(--surface);
+    background-image: linear-gradient(45deg, var(--surface-2) 25%, transparent 25%),
+        linear-gradient(-45deg, var(--surface-2) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, var(--surface-2) 75%),
+        linear-gradient(-45deg, transparent 75%, var(--surface-2) 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+
+.t-preview img {
+    max-height: 340px;
+    border-radius: var(--r-sm);
+}
+
+/* 分段切换（编码 / 解码这类二选一） */
+.t-segment {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: var(--r-full);
+    background: var(--surface-2);
+    border: 1px solid var(--hairline);
+}
+
+.t-segment button {
+    padding: 0.4rem var(--sp-4);
+    border-radius: var(--r-full);
+    color: var(--text-2);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    transition: background-color var(--dur-fast) var(--ease-out),
+        color var(--dur-fast) var(--ease-out),
+        transform var(--dur-press) var(--ease-out);
+}
+
+.t-segment button:active {
+    transform: scale(0.96);
+}
+
+.t-segment button[aria-selected='true'] {
+    background: var(--surface);
+    color: var(--text-1);
+    box-shadow: var(--shadow-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .t-drop:active,
+    .t-drop.is-over svg,
+    .t-file-remove:active,
+    .t-segment button:active,
+    .t-range:active::-webkit-slider-thumb {
+        transform: none;
+    }
+
+    .t-status.is-busy::before {
+        animation: none;
+    }
+}
+
