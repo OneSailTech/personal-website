@@ -1,7 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
-import BannerAd from '../components/BannerAd.astro';
 
 const projects = [
     {
@@ -51,8 +50,6 @@ const projects = [
             <h1>我的项目</h1>
             <p class="subtitle">探索、创造与分享</p>
         </section>
-
-        <BannerAd />
 
         <div class="projects-grid">
             {projects.reverse().map((project) => (

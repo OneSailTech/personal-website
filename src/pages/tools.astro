@@ -1,7 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
-import BannerAd from '../components/BannerAd.astro';
 
 const tools = [
     {
@@ -51,8 +50,6 @@ const tools = [
             <h1>实用工具</h1>
             <p class="subtitle">简单、高效的在线工具集合</p>
         </section>
-
-        <BannerAd />
 
         <div class="tools-grid">
             {tools.map((tool) => (

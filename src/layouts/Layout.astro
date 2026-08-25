@@ -1,6 +1,4 @@
 ---
-import BannerAd from '../components/BannerAd.astro';
-
 export interface Props {
     title?: string;
     description?: string;
@@ -34,17 +32,9 @@ const {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
-
-        <script
-            is:inline
-            async
-            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8610909763373370"
-            crossorigin="anonymous"
-        ></script>
     </head>
     <body>
         <slot />
-        <BannerAd placement="footer" />
         <footer class="site-footer">
             <p>&copy; {new Date().getFullYear()} XIE YIFAN. All rights reserved.</p>
             <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">赣ICP备2023013465号-3</a></p>
