@@ -1,0 +1,93 @@
+---
+// 页头：眉标 + 标题 + 副标题（+ 可选返回链接）。
+// 所有列表页与工具页共用，取代原先每页各写一遍的 #xxx-hero。
+interface Props {
+    label?: string;
+    title: string;
+    subtitle?: string;
+    align?: 'left' | 'center';
+    back?: { href: string; label: string };
+}
+
+const { label, title, subtitle, align = 'left', back } = Astro.props;
+---
+
+<header class:list={['page-header', 'u-stagger', align]}>
+    {back && (
+        <a class="back" href={back.href} style="--i:0">
+            <svg class="back-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9.5 3.5 5 8l4.5 4.5"></path>
+            </svg>
+            {back.label}
+        </a>
+    )}
+    {label && <p class="u-label eyebrow" style="--i:1">{label}</p>}
+    <h1 style="--i:2">{title}</h1>
+    {subtitle && <p class="subtitle" style="--i:3">{subtitle}</p>}
+    <slot />
+</header>
+
+<style>
+    .page-header {
+        padding-block: var(--sp-8) var(--sp-7);
+    }
+
+    .page-header.center {
+        text-align: center;
+    }
+
+    /* 依次入场的节奏由 base.css 的 .u-stagger 统一提供，这里只给延迟序号 --i */
+
+    .back {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--sp-1);
+        margin-bottom: var(--sp-5);
+        color: var(--text-2);
+        font-size: var(--fs-sm);
+        font-weight: 500;
+        transition: color var(--dur-fast) var(--ease-out);
+    }
+
+    .back:hover {
+        color: var(--text-1);
+    }
+
+    .back-icon {
+        width: 16px;
+        height: 16px;
+        /* §8：箭头往它要去的方向让一步，提前把结果说出来 */
+        transition: transform var(--dur-base) var(--ease-spring);
+    }
+
+    .back:hover .back-icon {
+        transform: translateX(-3px);
+    }
+
+    .eyebrow {
+        margin-bottom: var(--sp-3);
+    }
+
+    h1 {
+        font-size: var(--fs-h1);
+        line-height: var(--lh-h1);
+        letter-spacing: var(--ls-h1);
+    }
+
+    .subtitle {
+        margin-top: var(--sp-3);
+        max-width: var(--w-narrow);
+        color: var(--text-2);
+        font-size: var(--fs-body);
+    }
+
+    .page-header.center .subtitle {
+        margin-inline: auto;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .back:hover .back-icon {
+            transform: none;
+        }
+    }
+</style>

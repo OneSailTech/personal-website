@@ -1,0 +1,100 @@
+---
+// 文章卡片。首页与文章列表页共用，取代原先两处几乎相同的 .post-card。
+import Tag from './Tag.astro';
+
+interface Props {
+    href: string;
+    title: string;
+    description?: string;
+    date: Date;
+    tags?: string[];
+    index?: number;
+}
+
+const { href, title, description, date, tags = [], index = 0 } = Astro.props;
+
+const display = date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+});
+const iso = date.toISOString().slice(0, 10);
+---
+
+<a class="u-card card" href={href} style={`--i:${index}`}>
+    <div class="meta">
+        <time class="u-label" datetime={iso}>{display}</time>
+        {tags.map((tag) => <Tag>{tag}</Tag>)}
+    </div>
+
+    <h3>{title}</h3>
+    {description && <p class="desc">{description}</p>}
+
+    <span class="more">
+        阅读全文
+        <svg class="arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5"></path>
+        </svg>
+    </span>
+</a>
+
+<style>
+    .card {
+        gap: var(--sp-3);
+        padding: var(--sp-5);
+        color: var(--text-1);
+    }
+
+    .card:hover {
+        color: var(--text-1);
+    }
+
+    .meta {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-2);
+        flex-wrap: wrap;
+    }
+
+    h3 {
+        font-size: var(--fs-h3);
+        line-height: var(--lh-h3);
+        letter-spacing: var(--ls-h3);
+    }
+
+    .desc {
+        flex: 1;
+        color: var(--text-2);
+        font-size: var(--fs-sm);
+        line-height: var(--lh-tight);
+    }
+
+    .more {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--sp-1);
+        margin-top: var(--sp-1);
+        color: var(--accent);
+        font-size: var(--fs-sm);
+        font-weight: 500;
+    }
+
+    .arrow {
+        width: 15px;
+        height: 15px;
+        /* §8：卡片被悬停时箭头先往前走一点，暗示点下去会去哪 */
+        transition: transform var(--dur-base) var(--ease-spring);
+    }
+
+    @media (hover: hover) {
+        .card:hover .arrow {
+            transform: translateX(3px);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .card:hover .arrow {
+            transform: none;
+        }
+    }
+</style>

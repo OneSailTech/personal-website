@@ -1,0 +1,11 @@
+---
+// 标签。样式实体在 base.css 的 .u-tag，这里只是给页面一个统一入口，
+// 避免各页面再各自写一遍标签的圆角与配色。
+interface Props {
+    variant?: 'accent' | 'quiet';
+}
+
+const { variant = 'accent' } = Astro.props;
+---
+
+<span class:list={['u-tag', { 'u-tag--quiet': variant === 'quiet' }]}><slot /></span>

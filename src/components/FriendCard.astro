@@ -1,0 +1,123 @@
+---
+// 友链卡片：头像 + 昵称 + 一句话简介，就这三样。
+interface Props {
+    name: string;
+    bio: string;
+    avatar?: string;
+    url?: string;
+    index?: number;
+}
+
+const { name, bio, avatar, url, index = 0 } = Astro.props;
+
+// 头像加载失败时露出的兜底：取昵称首字，中英文都成立
+const initial = [...name][0] ?? '·';
+
+const Tag = url ? 'a' : 'div';
+const linkProps = url
+    ? { href: url, target: '_blank', rel: 'noopener noreferrer' }
+    : {};
+---
+
+<Tag class="u-card card" style={`--i:${index}`} {...linkProps}>
+    <span class="avatar" aria-hidden="true">
+        <span class="initial">{initial}</span>
+        {avatar && (
+            <img
+                class="avatar-img"
+                src={avatar}
+                alt=""
+                width="52"
+                height="52"
+                loading="lazy"
+                decoding="async"
+                referrerpolicy="no-referrer"
+            />
+        )}
+    </span>
+
+    <span class="text">
+        <span class="name">{name}</span>
+        <span class="bio">{bio}</span>
+    </span>
+</Tag>
+
+<script>
+    // 头像挂了就把 img 隐掉，让底下的首字兜底显示出来。
+    // complete && naturalWidth === 0 覆盖"脚本挂上监听之前就已经失败"的情况。
+    document.querySelectorAll<HTMLImageElement>('img.avatar-img').forEach((img) => {
+        const fail = () => img.classList.add('is-failed');
+        img.addEventListener('error', fail, { once: true });
+        if (img.complete && img.naturalWidth === 0) fail();
+    });
+</script>
+
+<style>
+    .card {
+        flex-direction: row;
+        align-items: center;
+        gap: var(--sp-4);
+        padding: var(--sp-4);
+        color: var(--text-1);
+    }
+
+    .card:hover {
+        color: var(--text-1);
+    }
+
+    .avatar {
+        position: relative;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        width: 52px;
+        height: 52px;
+        border-radius: var(--r-full);
+        background: var(--surface-2);
+        overflow: hidden;
+    }
+
+    .initial {
+        font-size: var(--fs-h3);
+        font-weight: 600;
+        color: var(--text-3);
+        user-select: none;
+    }
+
+    .avatar-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-img.is-failed {
+        display: none;
+    }
+
+    .text {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .name {
+        font-size: var(--fs-body);
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: var(--lh-tight);
+    }
+
+    .bio {
+        color: var(--text-2);
+        font-size: var(--fs-sm);
+        line-height: var(--lh-tight);
+        /* 一句话简介：超出就省略，不让卡片高度参差不齐 */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>

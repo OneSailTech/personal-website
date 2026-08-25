@@ -1,0 +1,56 @@
+---
+// 工具页外壳：Layout + Nav + 返回链接 + 页头 + 内容槽。
+// 六个工具页原先各自复制一遍这套结构，现在只在这里维护一份。
+import Layout from '../layouts/Layout.astro';
+import Nav from './Nav.astro';
+import PageHeader from './PageHeader.astro';
+
+interface Props {
+    title: string;
+    subtitle?: string;
+    description?: string;
+    label?: string;
+    width?: 'narrow' | 'content';
+}
+
+const {
+    title,
+    subtitle,
+    description,
+    label = 'TOOL',
+    width = 'narrow',
+} = Astro.props;
+---
+
+<Layout title={`${title} — XIE YIFAN`} description={description ?? subtitle ?? title}>
+    <Nav active="工具" />
+
+    <main id="main" class:list={['u-container', { 'u-narrow': width === 'narrow' }]}>
+        <PageHeader
+            label={label}
+            title={title}
+            subtitle={subtitle}
+            back={{ href: '/tools', label: '返回工具列表' }}
+        />
+
+        <div class="tool-body u-rise">
+            <slot />
+        </div>
+    </main>
+</Layout>
+
+<style>
+    .tool-body {
+        display: grid;
+        gap: var(--sp-5);
+        padding-bottom: var(--sp-9);
+        /* 排在页头三行之后入场，读起来是一段连续的展开 */
+        animation-delay: 150ms;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .tool-body {
+            animation-delay: 0ms;
+        }
+    }
+</style>
