@@ -1,21 +1,240 @@
 ---
-// 占位页：友链的完整设计在后续步骤补上，这里先保证导航里的 /links 不是死链。
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
+import PageHeader from '../components/PageHeader.astro';
+import FriendCard from '../components/FriendCard.astro';
+
+// 友链只要三样：头像、昵称、一句话简介。url 可选，没有就渲染成不可点的卡片。
+// 头像建议下载到 public/friends/ 里再引用（例：'/friends/somebody.webp'）：
+// 直接挂对方站点的图，对方换图或挂了这里就跟着空一块。
+// TODO(名单待补)：下面两条是占位，拿到真实名单后整段替换。
+const friends = [
+    { name: '占位友链 A', bio: '这是一条占位数据，用来确认排版；换成真实友链后删掉。' },
+    { name: '占位友链 B', bio: '头像缺失时会退回昵称首字，所以占位条目也不会露出破图。' },
+];
+
+// 本站信息。域名还没定，astro.config.mjs 里的 site 也就还是注释状态；
+// 这里从 Astro.site 取，等域名填进配置，下面的绝对地址会自动变完整。
+const origin = Astro.site ? Astro.site.href.replace(/\/+$/, '') : '';
+const email = 'onesailtech@gmail.com';
+const nickname = 'XIE YIFAN';
+const bio = '全栈开发 · 移动应用开发 · 界面设计';
+// 分享给别人的头像用不透明的那张：落在任何底色上都不会露出白边或黑块。
+const avatar = `${origin}/profile.webp`;
+const siteUrl = origin || '（域名待补）';
+
+const infoRows = [
+    { label: '昵称', value: nickname },
+    { label: '简介', value: bio },
+    { label: '头像', value: avatar },
+    { label: '站点', value: siteUrl },
+];
+
+const shareText = infoRows.map((row) => `${row.label}: ${row.value}`).join('\n');
 ---
 
-<Layout title="友链 — XIE YIFAN" description="XIE YIFAN 的友情链接">
+<Layout title="友链 — XIE YIFAN" description="XIE YIFAN 的友情链接，欢迎交换">
     <Nav active="友链" />
 
     <main id="main" class="u-container">
-        <p class="u-label">FRIENDS</p>
-        <h1>友链</h1>
-        <p>整理中。</p>
+        <PageHeader
+            label={`FRIENDS · ${friends.length} 位`}
+            title="友链"
+            subtitle="一些值得一看的人和站点"
+        />
+
+        <section class="block">
+            <div class="u-section-head">
+                <span class="idx">01</span>
+                <h2 class="title">我的朋友 / FRIENDS</h2>
+            </div>
+
+            {friends.length > 0 ? (
+                <div class="grid u-stagger">
+                    {friends.map((friend, i) => (
+                        <FriendCard {...friend} index={i} />
+                    ))}
+                </div>
+            ) : (
+                <p class="empty">还没有友链，欢迎来交换。</p>
+            )}
+        </section>
+
+        <section class="block">
+            <div class="u-section-head">
+                <span class="idx">02</span>
+                <h2 class="title">交换友链 / EXCHANGE</h2>
+            </div>
+
+            <div class="exchange">
+                <p class="lead">
+                    发一封邮件给我，附上你的<strong>头像</strong>、<strong>昵称</strong>和<strong>一句话简介</strong>就行。
+                    加好之后我会回信告诉你。
+                </p>
+
+                <dl class="info">
+                    {infoRows.map((row) => (
+                        <div class="info-row">
+                            <dt class="u-label">{row.label}</dt>
+                            <dd>{row.value}</dd>
+                        </div>
+                    ))}
+                </dl>
+
+                <div class="actions">
+                    <a class="u-btn u-btn--primary" href={`mailto:${email}?subject=${encodeURIComponent('友链申请')}`}>
+                        发邮件申请
+                    </a>
+                    <button class="u-btn u-btn--ghost" id="copy-info" type="button" data-share={shareText}>
+                        <span class="btn-label">复制本站信息</span>
+                    </button>
+                </div>
+
+                <p class="feedback" id="copy-feedback" role="status" aria-live="polite"></p>
+            </div>
+        </section>
     </main>
 </Layout>
 
+<script>
+    import { copyText } from '../scripts/copy';
+
+    // §16：完成与失败是两类反馈，各自有各自的话术，不能都说"已复制"。
+    const btn = document.getElementById('copy-info');
+    const feedback = document.getElementById('copy-feedback');
+    let resetTimer: number | undefined;
+
+    btn?.addEventListener('click', async () => {
+        const ok = await copyText(btn.getAttribute('data-share') ?? '');
+
+        btn.classList.remove('is-copied', 'is-failed');
+        btn.classList.add(ok ? 'is-copied' : 'is-failed');
+
+        if (feedback) {
+            feedback.textContent = ok ? '本站信息已复制到剪贴板' : '复制失败，请手动选中上面的内容';
+            feedback.classList.toggle('is-error', !ok);
+        }
+
+        window.clearTimeout(resetTimer);
+        resetTimer = window.setTimeout(() => {
+            btn.classList.remove('is-copied', 'is-failed');
+            if (feedback) {
+                feedback.textContent = '';
+                feedback.classList.remove('is-error');
+            }
+        }, 2400);
+    });
+</script>
+
 <style>
     main {
-        padding-block: var(--sp-9);
+        padding-bottom: var(--sp-9);
+    }
+
+    .block + .block {
+        margin-top: var(--sp-8);
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--sp-4);
+    }
+
+    .empty {
+        padding-block: var(--sp-6);
+        color: var(--text-3);
+    }
+
+    /* ---------- 交换友链 ---------- */
+
+    .exchange {
+        display: grid;
+        gap: var(--sp-5);
+        padding: var(--sp-6);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-lg);
+        background: var(--surface);
+    }
+
+    .lead {
+        max-width: var(--w-narrow);
+        color: var(--text-2);
+        font-size: var(--fs-sm);
+    }
+
+    /* 信息表：等宽标签在左，值在右，四行对齐成一列 */
+    .info {
+        display: grid;
+        gap: 1px;
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-md);
+        background: var(--hairline);
+        overflow: hidden;
+    }
+
+    .info-row {
+        display: grid;
+        grid-template-columns: 5rem minmax(0, 1fr);
+        gap: var(--sp-3);
+        align-items: baseline;
+        padding: var(--sp-3) var(--sp-4);
+        background: var(--surface-2);
+    }
+
+    .info-row dd {
+        font-family: var(--font-mono);
+        font-size: var(--fs-xs);
+        color: var(--text-1);
+        overflow-wrap: anywhere;
+        user-select: all;
+    }
+
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--sp-3);
+    }
+
+    #copy-info.is-copied {
+        border-color: var(--success);
+        color: var(--success);
+    }
+
+    #copy-info.is-failed {
+        border-color: var(--danger);
+        color: var(--danger);
+    }
+
+    .feedback {
+        min-height: 1.2em;
+        color: var(--success);
+        font-size: var(--fs-xs);
+    }
+
+    .feedback.is-error {
+        color: var(--danger);
+    }
+
+    @media (max-width: 980px) {
+        .grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 620px) {
+        .grid {
+            grid-template-columns: 1fr;
+        }
+
+        .exchange {
+            padding: var(--sp-5);
+        }
+
+        .info-row {
+            grid-template-columns: 1fr;
+            gap: var(--sp-1);
+        }
     }
 </style>
+
