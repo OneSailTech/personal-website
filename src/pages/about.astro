@@ -64,7 +64,7 @@ const allCerts = [
     <Nav active="关于" />
 
     <main id="main" class="u-container layout">
-        <div class="left u-stagger">
+        <div class="left u-stagger u-stagger--scroll">
             <header class="ident" style="--i:0">
                 <p class="u-label">ABOUT</p>
                 <h1>{name}</h1>
@@ -463,6 +463,9 @@ const allCerts = [
 
     .portrait-stage {
         position: relative;
+        /* 自成一层：下面的准星环用 z-index: -1 压在抠图后面，
+           isolate 保证这个负层不会逃到页面的装饰带那一层去。 */
+        isolation: isolate;
         display: grid;
         place-items: center;
         width: min(100%, 340px);
@@ -476,6 +479,19 @@ const allCerts = [
         inset: 6%;
         border-radius: var(--r-full);
         background: radial-gradient(circle, var(--accent-subtle) 0%, transparent 70%);
+    }
+
+    /* 一道极细的准星环。往下渐隐，免得变成"头顶在泡泡里"——
+       用的是 --hairline，降低透明度或高对比时会跟着 token 一起变。 */
+    .portrait-stage::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-full);
+        -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 88%);
+        mask-image: linear-gradient(to bottom, #000 40%, transparent 88%);
     }
 
     .portrait {

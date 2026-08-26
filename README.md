@@ -32,9 +32,9 @@ public/
 ├── profile.webp          # 分享用头像（白底不透明）
 └── viewer.min.{css,js}   # 证书大图查看器
 src/
-├── components/           # Nav / PageHeader / PostCard / Tag / ToolShell / FriendCard / ThemeToggle
+├── components/           # Nav / PageHeader / PostCard / Tag / ToolShell / FriendCard / ThemeToggle / HeroFx
 ├── content/blog/         # 文章（Markdown）
-├── layouts/Layout.astro  # 全局 head、主题初始化
+├── layouts/Layout.astro  # 全局 head、主题初始化、页顶装饰带、回到顶部
 ├── pages/                # 路由，pages/tools/ 下是六个工具页
 ├── scripts/              # 工具页的纯逻辑，与页面解耦，可单独测
 └── styles/

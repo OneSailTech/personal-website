@@ -1,0 +1,203 @@
+---
+/**
+ * 页顶装饰带：一层极淡的网格 + 两团静态光晕 + 一枚跟着指针走的光斑。
+ *
+ * 原先这套东西写死在首页里。现在提出来由 Layout 挂载，全站每一页的页顶
+ * 都是同一种质地——首页只是把它调大一档并多一条载入扫描线而已。
+ *
+ * 定位方式很重要：它是 body 的绝对定位子元素，靠 left/right: 0 拿到正文区
+ * 宽度，而不是 100vw。100vw 会把 scrollbar-gutter 预留的滚动条槽算进去，
+ * 结果整条带子偏移半个滚动条宽，右边缘留一道对不齐的缝。
+ *
+ * z-index 取 -1：装饰永远在内容底下，页面里的任何区块都不必再声明层级。
+ * body 的背景色会传播到画布，画布在负层之下，所以带子照样看得见。
+ */
+interface Props {
+    /** hero = 首页那一档（更高、带载入扫描线）；page = 内页页头那一档。 */
+    variant?: 'hero' | 'page';
+}
+
+const { variant = 'page' } = Astro.props;
+---
+
+<div class:list={['fx', `fx--${variant}`]} data-fx aria-hidden="true">
+    <div class="fx-grid"></div>
+    <div class="fx-glow"></div>
+    <div class="fx-beam"></div>
+    {variant === 'hero' && <div class="fx-scan"></div>}
+</div>
+
+<style>
+    .fx {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: calc(var(--nav-h) + var(--band-h));
+        z-index: -1;
+        overflow: hidden;
+        pointer-events: none;
+        /* 扫描线的行程。cqh 支持时用容器高度，见下面的 @supports */
+        --scan-to: 620px;
+        container-type: size;
+    }
+
+    .fx--hero {
+        height: calc(var(--nav-h) + var(--hero-h));
+    }
+
+    @supports (height: 100cqh) {
+        .fx {
+            --scan-to: 100cqh;
+        }
+    }
+
+    .fx-grid,
+    .fx-glow,
+    .fx-beam {
+        position: absolute;
+        inset: 0;
+    }
+
+    /* 底层网格：顶部最清楚，往下渐隐，免得在正文和页脚之间留一条硬边 */
+    .fx-grid {
+        background-image: linear-gradient(to right, var(--fx-grid) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--fx-grid) 1px, transparent 1px);
+        background-size: var(--fx-cell) var(--fx-cell);
+        -webkit-mask-image: radial-gradient(125% 100% at 50% 0%, #000 32%, transparent 80%);
+        mask-image: radial-gradient(125% 100% at 50% 0%, #000 32%, transparent 80%);
+    }
+
+    /* 内页的带子矮，渐隐得更早一点，收在标题下面而不是压到卡片上 */
+    .fx--page .fx-grid {
+        -webkit-mask-image: radial-gradient(140% 100% at 50% 0%, #000 18%, transparent 74%);
+        mask-image: radial-gradient(140% 100% at 50% 0%, #000 18%, transparent 74%);
+    }
+
+    /* 两团静态光：位置固定，不做任何位移动画（§14 反对整屏尺度的持续运动） */
+    .fx-glow {
+        background: radial-gradient(46rem 30rem at 8% -12%, var(--fx-glow), transparent 70%),
+            radial-gradient(34rem 26rem at 92% 4%, var(--fx-glow), transparent 72%);
+    }
+
+    .fx--page .fx-glow {
+        background: radial-gradient(38rem 20rem at 12% -30%, var(--fx-glow), transparent 70%),
+            radial-gradient(28rem 16rem at 88% -10%, var(--fx-glow), transparent 72%);
+    }
+
+    /* 指针光斑：同一套网格，只是亮一档，用一个跟着指针的圆形遮罩裁出来。
+       于是"光照到哪里，网格就在哪里亮起来"。
+       --mx / --my 由脚本每帧写一次；指针不在带子里时整层 opacity 为 0。 */
+    .fx-beam {
+        background-image: radial-gradient(20rem 20rem at var(--mx, 50%) var(--my, 42%), var(--fx-beam), transparent 70%),
+            linear-gradient(to right, var(--fx-beam) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--fx-beam) 1px, transparent 1px);
+        background-size: auto, var(--fx-cell) var(--fx-cell), var(--fx-cell) var(--fx-cell);
+        -webkit-mask-image: radial-gradient(17rem 17rem at var(--mx, 50%) var(--my, 42%), #000, transparent 72%);
+        mask-image: radial-gradient(17rem 17rem at var(--mx, 50%) var(--my, 42%), #000, transparent 72%);
+        opacity: 0;
+        transition: opacity var(--dur-base) var(--ease-out);
+    }
+
+    /* 淡入淡出交给 opacity（可合成），位置本身不做过渡——
+       §2：指针到哪里就是哪里，中间加插值等于加延迟。 */
+    .fx.is-lit .fx-beam {
+        opacity: 1;
+    }
+
+    /* 载入时自上而下扫过一次的细线。只有一次，不循环。 */
+    .fx-scan {
+        position: absolute;
+        inset-inline: 0;
+        top: 0;
+        height: 1px;
+        background: linear-gradient(to right, transparent, var(--accent), transparent);
+        opacity: 0;
+        animation: scan 1500ms var(--ease-out) 220ms both;
+    }
+
+    @keyframes scan {
+        0% {
+            opacity: 0;
+            transform: translate3d(0, 0, 0);
+        }
+        14% {
+            opacity: 0.5;
+        }
+        100% {
+            opacity: 0;
+            transform: translate3d(0, var(--scan-to), 0);
+        }
+    }
+
+    /* §14：扫描线是纯装饰的位移，减弱动效时直接不要。
+       网格和光晕是静态的，留着不影响。 */
+    @media (prefers-reduced-motion: reduce) {
+        .fx-scan {
+            display: none;
+        }
+    }
+</style>
+
+<script>
+    // 页顶那枚跟着指针走的光斑。
+    // 只在真的有精细指针、且用户没要求减弱动效时启用：触屏上没有"指针位置"
+    // 这回事，停在最后一次触摸的地方亮着只会让人莫名其妙。
+    //
+    // 装饰带在内容底下（z-index: -1）且 pointer-events: none，拿不到自己的
+    // 指针事件，所以监听挂在 document 上，用带子的 rect 判断指针在不在范围内。
+    const bands = Array.from(document.querySelectorAll<HTMLElement>('[data-fx]'));
+
+    const fine = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    if (bands.length > 0 && fine.matches && !still.matches) {
+        let px = 0;
+        let py = 0;
+        let queued = false;
+
+        // pointermove 一帧可能来好几个（高刷鼠标尤其明显）。
+        // 每帧只读一次 rect、只写一次样式，不在事件里反复触发布局（§11）。
+        const apply = () => {
+            queued = false;
+
+            for (const band of bands) {
+                const rect = band.getBoundingClientRect();
+                if (!rect.width || !rect.height) continue;
+
+                // 滚过去之后 rect 会移出视口，判定自然失败，光斑随之熄灭
+                const inside =
+                    px >= rect.left && px <= rect.right && py >= rect.top && py <= rect.bottom;
+
+                if (!inside) {
+                    band.classList.remove('is-lit');
+                    continue;
+                }
+
+                // 先对准位置再点亮：否则光斑会从上一次停留的地方滑过来，
+                // 那一下位移不是用户做出来的（§2 位置只由指针决定）。
+                band.style.setProperty('--mx', `${((px - rect.left) / rect.width) * 100}%`);
+                band.style.setProperty('--my', `${((py - rect.top) / rect.height) * 100}%`);
+                band.classList.add('is-lit');
+            }
+        };
+
+        document.addEventListener(
+            'pointermove',
+            (event) => {
+                px = event.clientX;
+                py = event.clientY;
+                if (!queued) {
+                    queued = true;
+                    requestAnimationFrame(apply);
+                }
+            },
+            { passive: true }
+        );
+
+        // 指针整个移出窗口时熄灯，别把光斑留在边上
+        document.addEventListener('pointerleave', () => {
+            for (const band of bands) band.classList.remove('is-lit');
+        });
+    }
+</script>

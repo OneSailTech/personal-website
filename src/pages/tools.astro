@@ -53,7 +53,7 @@ const tools = [
             subtitle="全部在浏览器本地运行，文件不会上传到任何服务器"
         />
 
-        <div class="grid u-stagger">
+        <div class="grid u-stagger u-stagger--scroll">
             {tools.map((tool, i) => (
                 <a class="u-card card" href={tool.url} style={`--i:${i}`}>
                     <span class="icon" aria-hidden="true">{tool.icon}</span>

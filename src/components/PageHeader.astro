@@ -68,6 +68,21 @@ const { label, title, subtitle, align = 'left', back } = Astro.props;
         margin-bottom: var(--sp-3);
     }
 
+    /* 眉标后面拖一道渐隐的线，和首页的 kicker 同一个手势：
+       制图感，也把视线带向右边的留白。居中版不加——两边不对称会更显眼。 */
+    .page-header:not(.center) .eyebrow {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-3);
+    }
+
+    .page-header:not(.center) .eyebrow::after {
+        content: '';
+        height: 1px;
+        width: min(160px, 24vw);
+        background: linear-gradient(to right, var(--hairline-strong), transparent);
+    }
+
     h1 {
         font-size: var(--fs-h1);
         line-height: var(--lh-h1);
@@ -76,7 +91,9 @@ const { label, title, subtitle, align = 'left', back } = Astro.props;
 
     .subtitle {
         margin-top: var(--sp-3);
-        max-width: var(--w-narrow);
+        /* 副标题也是正文，行长交给 --measure；原先用 --w-narrow，
+           那是"容器"宽度（含栏距与纸面内边距），当行长上限偏宽了。 */
+        max-width: var(--measure);
         color: var(--text-2);
         font-size: var(--fs-body);
     }

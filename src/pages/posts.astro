@@ -21,7 +21,7 @@ const posts = (await getCollection('blog')).sort(
         />
 
         {posts.length > 0 ? (
-            <div class="grid u-stagger">
+            <div class="grid u-stagger u-stagger--scroll">
                 {posts.map((post, i) => (
                     <PostCard
                         href={`/posts/${post.id}`}
@@ -30,6 +30,7 @@ const posts = (await getCollection('blog')).sort(
                         date={post.data.date}
                         tags={post.data.tags}
                         index={i}
+                        featured={i === 0}
                     />
                 ))}
             </div>
@@ -48,6 +49,12 @@ const posts = (await getCollection('blog')).sort(
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: var(--sp-4);
+    }
+
+    /* 最新那篇横跨整行，和首页同一套层级语言。
+       卡片由 PostCard 渲染，拿不到本页的作用域属性，用 :global。 */
+    .grid > :global(:first-child) {
+        grid-column: 1 / -1;
     }
 
     .empty {

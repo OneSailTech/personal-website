@@ -477,6 +477,9 @@
 .t-log-body {
     max-height: 12rem;
     overflow: auto;
+    /* 日志滚到底之后不要把滚动接力给整个页面：
+       用户本意是看日志，页面突然跟着往下窜是最烦的那类滚动体验。 */
+    overscroll-behavior: contain;
     padding: 0 var(--sp-4) var(--sp-4);
     margin: 0;
     color: var(--text-3);

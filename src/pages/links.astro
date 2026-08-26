@@ -50,7 +50,7 @@ const shareText = infoRows.map((row) => `${row.label}: ${row.value}`).join('\n')
             </div>
 
             {friends.length > 0 ? (
-                <div class="grid u-stagger">
+                <div class="grid u-stagger u-stagger--scroll">
                     {friends.map((friend, i) => (
                         <FriendCard {...friend} index={i} />
                     ))}

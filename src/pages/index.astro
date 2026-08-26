@@ -33,20 +33,11 @@ const NAME = 'XIE YIFAN';
 const letters = [...NAME];
 ---
 
-<Layout title="XIE YIFAN" description="XIE YIFAN — 分享技术、设计与生活随笔">
+<Layout title="XIE YIFAN" description="XIE YIFAN — 分享技术、设计与生活随笔" fx="hero">
     <Nav active="首页" />
 
     <main id="main">
-        <section class="hero" id="hero">
-            {/* 装饰层：网格 + 两团静态光 + 跟指针走的光斑 + 载入时扫过一次的线。
-                整层 aria-hidden 且 pointer-events: none，不参与阅读也不挡点击。 */}
-            <div class="fx" id="fx" aria-hidden="true">
-                <div class="fx-grid"></div>
-                <div class="fx-glow"></div>
-                <div class="fx-beam"></div>
-                <div class="fx-scan"></div>
-            </div>
-
+        <section class="hero">
             <div class="u-container hero-inner">
                 <p class="u-label kicker">FULL-STACK DEVELOPER · CHINA</p>
 
@@ -116,115 +107,16 @@ const letters = [...NAME];
 <style>
     /* ============================================================
        首页 hero
-       构成：一层极淡的网格 + 两团静态光晕 + 一枚跟着指针走的光斑，
-       文字压在最上面。只有指针会让画面动，没有任何无限循环的动画——
-       §14 明确反对整屏尺度的持续运动。
+       网格 / 光晕 / 指针光斑那一层已经提到 HeroFx 组件里，由 Layout 挂在
+       body 上（`fx="hero"`），全站共用同一套质地。这里只管文字的排布与节奏。
        ============================================================ */
 
     .hero {
-        position: relative;
-        /* 装饰层与内容各占一层，z-index 不外溢到吸顶导航（--z-nav）上 */
-        isolation: isolate;
         display: flex;
         align-items: center;
-        min-height: min(82svh, 680px);
+        /* 与装饰带同一个 token：改一处两边一起变 */
+        min-height: var(--hero-h);
         padding-block: var(--sp-8) var(--sp-9);
-    }
-
-    /* 满幅铺开：hero 自己占满页面宽度，容器的 max-width 只束住里面的 .hero-inner，
-       所以装饰层贴着 hero 的四边就够，不需要 100vw 那类会多出滚动条的写法。
-       上边越过导航高度，让半透明的顶栏后面真的有东西可以模糊（§12）。 */
-    .fx {
-        position: absolute;
-        top: calc(var(--nav-h) * -1);
-        inset-inline: 0;
-        bottom: 0;
-        z-index: 0;
-        overflow: hidden;
-        pointer-events: none;
-        /* 网格尺寸只在这里定义一次：两层网格必须严格对齐 */
-        --cell: 72px;
-        /* 扫描线的行程。cqh 支持时用容器高度，见下面的 @supports */
-        --scan-to: 620px;
-        container-type: size;
-    }
-
-    @supports (height: 100cqh) {
-        .fx {
-            --scan-to: 100cqh;
-        }
-    }
-
-    .hero-inner {
-        position: relative;
-        z-index: 1;
-    }
-
-    .fx-grid,
-    .fx-glow,
-    .fx-beam {
-        position: absolute;
-        inset: 0;
-    }
-
-    /* 底层网格：顶部最清楚，往下渐隐，免得在正文和页脚之间留一条硬边 */
-    .fx-grid {
-        background-image: linear-gradient(to right, var(--fx-grid) 1px, transparent 1px),
-            linear-gradient(to bottom, var(--fx-grid) 1px, transparent 1px);
-        background-size: var(--cell) var(--cell);
-        -webkit-mask-image: radial-gradient(125% 100% at 50% 0%, #000 32%, transparent 80%);
-        mask-image: radial-gradient(125% 100% at 50% 0%, #000 32%, transparent 80%);
-    }
-
-    /* 两团静态光：位置固定，不做任何位移动画 */
-    .fx-glow {
-        background: radial-gradient(46rem 30rem at 8% -12%, var(--fx-glow), transparent 70%),
-            radial-gradient(34rem 26rem at 92% 4%, var(--fx-glow), transparent 72%);
-    }
-
-    /* 指针光斑：同一套网格，只是亮一档，用一个跟着指针的圆形遮罩裁出来。
-       于是"光照到哪里，网格就在哪里亮起来"。
-       --mx / --my 由脚本每帧写一次；指针不在 hero 内时整层 opacity 为 0。 */
-    .fx-beam {
-        background-image: radial-gradient(20rem 20rem at var(--mx, 50%) var(--my, 42%), var(--fx-beam), transparent 70%),
-            linear-gradient(to right, var(--fx-beam) 1px, transparent 1px),
-            linear-gradient(to bottom, var(--fx-beam) 1px, transparent 1px);
-        background-size: auto, var(--cell) var(--cell), var(--cell) var(--cell);
-        -webkit-mask-image: radial-gradient(17rem 17rem at var(--mx, 50%) var(--my, 42%), #000, transparent 72%);
-        mask-image: radial-gradient(17rem 17rem at var(--mx, 50%) var(--my, 42%), #000, transparent 72%);
-        opacity: 0;
-        transition: opacity var(--dur-base) var(--ease-out);
-    }
-
-    /* 淡入淡出交给 opacity（可合成），位置本身不做过渡——
-       §2：指针到哪里就是哪里，中间加插值等于加延迟。 */
-    .fx.is-lit .fx-beam {
-        opacity: 1;
-    }
-
-    /* 载入时自上而下扫过一次的细线。只有一次，不循环。 */
-    .fx-scan {
-        position: absolute;
-        inset-inline: 0;
-        top: 0;
-        height: 1px;
-        background: linear-gradient(to right, transparent, var(--accent), transparent);
-        opacity: 0;
-        animation: scan 1500ms var(--ease-out) 220ms both;
-    }
-
-    @keyframes scan {
-        0% {
-            opacity: 0;
-            transform: translate3d(0, 0, 0);
-        }
-        14% {
-            opacity: 0.5;
-        }
-        100% {
-            opacity: 0;
-            transform: translate3d(0, var(--scan-to), 0);
-        }
     }
 
     /* ---------- hero 文字 ----------
@@ -384,10 +276,6 @@ const letters = [...NAME];
     }
 
     @media (max-width: 600px) {
-        .hero {
-            min-height: min(78svh, 560px);
-        }
-
         .stats {
             /* 窄屏排两列，四项刚好两行，不用横向挤 */
             display: grid;
@@ -397,8 +285,7 @@ const letters = [...NAME];
     }
 
     /* ---------- 减弱动效（§14） ----------
-       位移、模糊、扫描线全部撤掉，只留淡入；指针光斑也不再跟随（见脚本）。
-       网格和光晕是静态的，留着不影响。 */
+       位移与模糊全部撤掉，只留淡入。装饰带那一层自己在 HeroFx 里响应。 */
     @media (prefers-reduced-motion: reduce) {
         .kicker,
         .subtitle,
@@ -409,70 +296,9 @@ const letters = [...NAME];
             animation-delay: 0ms;
         }
 
-        .fx-scan {
-            display: none;
-        }
-
         .u-btn:hover .arrow {
             transform: none;
         }
     }
-
-
-
-
-
-
 </style>
-
-<script>
-    // hero 里跟着指针走的光斑。
-    // 只在真的有精细指针、且用户没要求减弱动效时启用：触屏上没有"指针位置"
-    // 这回事，停在最后一次触摸的地方亮着只会让人莫名其妙。
-    const hero = document.getElementById('hero');
-    const fx = document.getElementById('fx');
-
-    const fine = window.matchMedia('(hover: hover) and (pointer: fine)');
-    const still = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-    if (hero && fx && fine.matches && !still.matches) {
-        let px = 0;
-        let py = 0;
-        let queued = false;
-
-        // pointermove 一帧可能来好几个（高刷鼠标尤其明显）。
-        // 每帧只读一次 rect、只写一次样式，不在事件里反复触发布局（§11）。
-        const apply = () => {
-            queued = false;
-            const rect = fx.getBoundingClientRect();
-            if (!rect.width || !rect.height) return;
-            fx.style.setProperty('--mx', `${((px - rect.left) / rect.width) * 100}%`);
-            fx.style.setProperty('--my', `${((py - rect.top) / rect.height) * 100}%`);
-        };
-
-        hero.addEventListener(
-            'pointermove',
-            (event) => {
-                px = event.clientX;
-                py = event.clientY;
-                if (!queued) {
-                    queued = true;
-                    requestAnimationFrame(apply);
-                }
-            },
-            { passive: true }
-        );
-
-        // 先把位置对准再点亮：否则光斑会从上一次停留的地方滑过来，
-        // 那一下位移不是用户做出来的（§2 位置只由指针决定）。
-        hero.addEventListener('pointerenter', (event) => {
-            px = event.clientX;
-            py = event.clientY;
-            apply();
-            fx.classList.add('is-lit');
-        });
-
-        hero.addEventListener('pointerleave', () => fx.classList.remove('is-lit'));
-    }
-</script>
 

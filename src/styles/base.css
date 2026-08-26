@@ -17,6 +17,10 @@ html {
     overflow-x: clip;
     scrollbar-gutter: stable;
     scroll-behavior: smooth;
+    /* 吸顶导航会挡住锚点落点。Astro 给 Markdown 标题自动生成 id，
+       文章里的 #锚点、跳转链接、skip-link 全都走这条路——不留出这段
+       余量，点过去的标题正好被顶栏盖住（§4 可预期）。 */
+    scroll-padding-top: calc(var(--nav-h) + var(--sp-4));
     -webkit-text-size-adjust: 100%;
 }
 
@@ -33,6 +37,10 @@ html {
 }
 
 body {
+    /* 装饰带（HeroFx）是 body 的绝对定位子元素，靠 left/right: 0 拿到
+       正文区宽度——不用 100vw，就不会把 scrollbar-gutter 预留的那条
+       滚动条槽算进来，右边也不会留下一道对不齐的缝。 */
+    position: relative;
     min-height: 100svh;
     background-color: var(--bg);
     color: var(--text-1);
@@ -40,10 +48,12 @@ body {
     font-size: var(--fs-body);
     line-height: var(--lh-body);
     letter-spacing: var(--ls-body);
+    /* optical-sizing 与抗锯齿留着；text-rendering: optimizeLegibility 撤掉——
+       它会让长文页在每次滚动重绘时多做一轮字距/连字计算（§1 别在输入路径上
+       留非必要开销），而系统字体本身已经带了字距表。 */
     font-optical-sizing: auto;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
     transition: background-color var(--dur-base) var(--ease-out),
         color var(--dur-base) var(--ease-out);
 }
@@ -325,11 +335,32 @@ a:hover {
         box-shadow var(--dur-base) var(--ease-out);
 }
 
+/* 悬停时顶边亮起一道信号色的光，中段最亮、两端淡出——
+   §12 里"材质的上沿接住光"的那一下。用伪元素而不是 border-top：
+   border 会挤动内容，也没法做渐变。 */
+.u-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: var(--sp-4);
+    right: var(--sp-4);
+    height: 1px;
+    border-radius: var(--r-full);
+    background: linear-gradient(to right, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-out);
+    pointer-events: none;
+}
+
 @media (hover: hover) {
     .u-card:hover {
         transform: translateY(-3px);
         border-color: var(--hairline-strong);
         box-shadow: var(--shadow-3);
+    }
+
+    .u-card:hover::before {
+        opacity: 1;
     }
 }
 
@@ -437,21 +468,79 @@ a:hover {
     }
 }
 
-/* ---------- 滚动边缘渐隐（§12：不用 1px 硬分割线） ---------- */
+/* ---------- 回到顶部：半透明材质圆片（§12） ----------
+   原先只有文章详情页有这个按钮，长的列表页（工具、友链、关于）滚到底就得
+   一路滚回去。搬到 Layout 里由全站共用，样式因此落在 base 层。 */
 
-.u-scroll-edge {
+.u-to-top {
     position: fixed;
-    inset: var(--nav-h) 0 auto 0;
-    height: var(--sp-6);
-    pointer-events: none;
-    z-index: calc(var(--z-nav) - 1);
-    background: linear-gradient(to bottom, var(--bg), transparent);
+    right: var(--sp-6);
+    bottom: var(--sp-6);
+    z-index: var(--z-float);
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--r-full);
+    border: 1px solid var(--hairline-strong);
+    background: var(--material-bg);
+    backdrop-filter: var(--material-blur);
+    -webkit-backdrop-filter: var(--material-blur);
+    box-shadow: var(--shadow-2);
+    color: var(--text-1);
     opacity: 0;
-    transition: opacity var(--dur-base) var(--ease-out);
+    visibility: hidden;
+    transform: translateY(8px) scale(0.9);
+    transition: opacity var(--dur-base) var(--ease-out),
+        visibility var(--dur-base) var(--ease-out),
+        transform var(--dur-spring) var(--ease-spring),
+        background-color var(--dur-fast) var(--ease-out),
+        color var(--dur-fast) var(--ease-out);
 }
 
-.u-scroll-edge.is-visible {
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .u-to-top {
+        background: var(--surface);
+    }
+}
+
+.u-to-top svg {
+    width: 19px;
+    height: 19px;
+}
+
+.u-to-top.is-visible {
     opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.u-to-top:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--text-on-accent);
+}
+
+/* §1：反馈在按下时给，不等松手 */
+.u-to-top:active {
+    transform: scale(0.9);
+    transition-duration: var(--dur-press);
+}
+
+@media (max-width: 900px) {
+    .u-to-top {
+        right: var(--sp-4);
+        bottom: var(--sp-4);
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .u-to-top:active,
+    .u-to-top.is-visible {
+        transform: none;
+    }
 }
 
 /* ---------- 打印 ----------

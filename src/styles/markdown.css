@@ -20,7 +20,9 @@
     font-size: var(--fs-body);
     line-height: var(--lh-body);
     overflow-wrap: break-word;
-    text-rendering: optimizeLegibility;
+    /* 这里原来有 text-rendering: optimizeLegibility。正文是全站最长的一段文本，
+       Markdown 阅读器还会每敲一个键就重渲染一次——它带来的字距/连字重算是
+       滚动与输入时最不该出现的开销（§1）。系统字体自带字距表，去掉不影响观感。 */
     -webkit-font-smoothing: antialiased;
 }
 
@@ -84,6 +86,9 @@
     color: var(--md-text);
     padding: var(--sp-4) var(--sp-5);
     overflow-x: auto;
+    /* 代码块横向滚到尽头时不要把手势接力给页面：
+       触控板上横滑代码常常会变成整页左右晃。 */
+    overscroll-behavior-x: contain;
     margin-bottom: var(--sp-5);
 }
 
@@ -93,6 +98,7 @@
     min-width: 100%;
     max-width: 100%;
     overflow-x: auto;
+    overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
     margin: 1.75rem 0;
     border: 1px solid var(--md-border);
