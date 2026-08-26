@@ -1,0 +1,687 @@
+---
+import ToolShell from '../../components/ToolShell.astro';
+import { FORMATS } from '../../scripts/image';
+---
+
+<ToolShell
+    label="TOOL · IMAGE"
+    title="图片处理"
+    subtitle="转换格式、调整尺寸，多张会自动打包成 ZIP。全部在你的浏览器里完成，图片不会上传到任何服务器。"
+    description="离线图片处理：PNG、JPG、WEBP、AVIF、BMP、GIF、ICO、TIFF、SVG 格式转换 + 按百分比/像素调整尺寸、裁剪与留白"
+>
+    <div class="t-drop" id="drop" role="button" tabindex="0" aria-label="选择或拖入图片">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <path d="M7 9l5-5 5 5M12 4v11"></path>
+        </svg>
+        <p class="t-drop-title">点击选择，或把图片拖进来</p>
+        <p class="t-hint">支持 PNG / JPG / WEBP / AVIF / BMP / GIF / ICO / SVG 等，可多选</p>
+        <input type="file" id="file-input" accept="image/*" multiple hidden />
+    </div>
+
+    <section class="t-panel" id="panel" hidden>
+        <div class="t-field">
+            <p class="t-legend">待转换 <span id="count">0</span> 个文件</p>
+            <div class="t-files" id="files"></div>
+        </div>
+
+        <div class="t-row">
+            <div class="t-field">
+                <label for="format">目标格式</label>
+                <select class="t-select" id="format">
+                    {FORMATS.map((format) => (
+                        <option value={format.mime}>{format.label}</option>
+                    ))}
+                </select>
+                <p class="t-hint" id="format-note"></p>
+            </div>
+
+            <div class="t-field" id="quality-field" hidden>
+                <label for="quality">质量 · <span id="quality-value">100%</span></label>
+                <input class="t-range" type="range" id="quality" min="10" max="100" step="1" value="100" />
+                <p class="t-hint">100% 即该格式的最高质量。无损格式没有这一项。</p>
+            </div>
+
+            <div class="t-field">
+                <p class="t-legend">尺寸</p>
+                <div class="t-segment" role="tablist" aria-label="尺寸模式">
+                    <button type="button" role="tab" id="tab-original" aria-selected="true">原始尺寸</button>
+                    <button type="button" role="tab" id="tab-percent" aria-selected="false">按百分比</button>
+                    <button type="button" role="tab" id="tab-pixels" aria-selected="false">按像素</button>
+                </div>
+                <p class="t-hint" id="resize-hint"></p>
+            </div>
+        </div>
+
+        <div class="t-row" id="pane-percent" hidden>
+            <div class="t-field">
+                <label for="scale">缩放 · <span id="scale-value">100%</span></label>
+                <input class="t-range" type="range" id="scale" min="10" max="400" step="5" value="100" />
+                <p class="t-hint">小于 100% 缩小，大于 100% 放大；等比缩放，不会变形。</p>
+            </div>
+        </div>
+
+        <div id="pane-pixels" hidden>
+            <div class="t-row">
+                <div class="t-field">
+                    <label for="px-width">宽 px</label>
+                    <input class="t-input" type="number" id="px-width" min="1" max="16384" step="1" inputmode="numeric" placeholder="自动" />
+                </div>
+                <div class="t-field">
+                    <label for="px-height">高 px</label>
+                    <input class="t-input" type="number" id="px-height" min="1" max="16384" step="1" inputmode="numeric" placeholder="自动" />
+                </div>
+                <div class="t-field">
+                    <p class="t-legend">宽高比</p>
+                    <div class="t-segment" role="tablist" aria-label="宽高比">
+                        <button type="button" role="tab" id="tab-lock" aria-selected="true">锁定</button>
+                        <button type="button" role="tab" id="tab-free" aria-selected="false">自由</button>
+                    </div>
+                    <p class="t-hint">锁定时改一边，另一边按原图比例自动算。</p>
+                </div>
+            </div>
+
+            <div class="t-row">
+                <div class="t-field">
+                    <label for="preset">预设尺寸</label>
+                    <select class="t-select" id="preset">
+                        <option value="">选择一个常用尺寸…</option>
+                        <optgroup label="常用尺寸">
+                            <option value="1920x1080">1920 × 1080 · 1080P 横屏</option>
+                            <option value="1280x720">1280 × 720 · 720P 横屏</option>
+                            <option value="1080x1920">1080 × 1920 · 手机壁纸竖屏</option>
+                            <option value="1080x1080">1080 × 1080 · 方图</option>
+                            <option value="800x600">800 × 600</option>
+                            <option value="640x480">640 × 480</option>
+                            <option value="400x400">400 × 400 · 头像</option>
+                            <option value="256x256">256 × 256 · 图标</option>
+                            <option value="128x128">128 × 128 · 图标</option>
+                            <option value="64x64">64 × 64 · 小图标</option>
+                        </optgroup>
+                        <optgroup label="证件照">
+                            <option value="295x413">295 × 413 · 一寸</option>
+                            <option value="413x579">413 × 579 · 二寸</option>
+                            <option value="260x378">260 × 378 · 小一寸（驾驶证）</option>
+                            <option value="390x567">390 × 567 · 大一寸（护照、港澳台通行证）</option>
+                            <option value="358x441">358 × 441 · 身份证</option>
+                            <option value="600x600">600 × 600 · 美国签证</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="t-field">
+                    <label for="fit">适配方式</label>
+                    <select class="t-select" id="fit">
+                        <option value="contain">留白适应（不裁剪）</option>
+                        <option value="cover">居中裁剪（占满）</option>
+                        <option value="stretch">拉伸填满（可能变形）</option>
+                    </select>
+                    <p class="t-hint">目标比例和原图不一致时，决定多出来的部分怎么处理。</p>
+                </div>
+
+                <div class="t-field" id="pad-field">
+                    <label for="pad-select">留白底色</label>
+                    <select class="t-select" id="pad-select">
+                        <option value="">透明</option>
+                        <option value="#ffffff">白色</option>
+                        <option value="#000000">黑色</option>
+                        <option value="custom">自定义…</option>
+                    </select>
+                    <input class="t-color" type="color" id="pad-color" value="#ffffff" hidden />
+                    <p class="t-hint">JPG / BMP 这类不支持透明的格式，留白一律是白色。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="t-progress" id="progress" hidden>
+            <div class="t-progress-bar" id="progress-bar"></div>
+        </div>
+
+        <div class="t-actions">
+            <button class="u-btn u-btn--primary" id="convert" type="button">转换并下载</button>
+            <button class="u-btn u-btn--ghost" id="cancel" type="button" hidden>取消</button>
+            <button class="u-btn u-btn--ghost" id="clear" type="button">清空</button>
+        </div>
+
+        <p class="t-status" id="status" role="status" aria-live="polite"></p>
+    </section>
+</ToolShell>
+
+<script>
+    import {
+        FORMATS,
+        encodeImage,
+        loadImage,
+        supportsFormat,
+        computeTargetSize,
+        MAX_SIDE,
+        type ResizeOptions,
+        type FitMode,
+    } from '../../scripts/image';
+    import { downloadBlob, formatSize, replaceExt } from '../../scripts/download';
+    import { zipStore, type ZipEntry } from '../../scripts/zip';
+
+    const drop = document.getElementById('drop') as HTMLElement;
+    const input = document.getElementById('file-input') as HTMLInputElement;
+    const panel = document.getElementById('panel') as HTMLElement;
+    const filesBox = document.getElementById('files') as HTMLElement;
+    const countLabel = document.getElementById('count') as HTMLElement;
+    const formatSelect = document.getElementById('format') as HTMLSelectElement;
+    const formatNote = document.getElementById('format-note') as HTMLElement;
+    const qualityField = document.getElementById('quality-field') as HTMLElement;
+    const quality = document.getElementById('quality') as HTMLInputElement;
+    const qualityValue = document.getElementById('quality-value') as HTMLElement;
+
+    // 尺寸调整相关
+    const tabOriginal = document.getElementById('tab-original') as HTMLButtonElement;
+    const tabPercent = document.getElementById('tab-percent') as HTMLButtonElement;
+    const tabPixels = document.getElementById('tab-pixels') as HTMLButtonElement;
+    const resizeHint = document.getElementById('resize-hint') as HTMLElement;
+    const panePercent = document.getElementById('pane-percent') as HTMLElement;
+    const panePixels = document.getElementById('pane-pixels') as HTMLElement;
+    const scale = document.getElementById('scale') as HTMLInputElement;
+    const scaleValue = document.getElementById('scale-value') as HTMLElement;
+    const pxWidth = document.getElementById('px-width') as HTMLInputElement;
+    const pxHeight = document.getElementById('px-height') as HTMLInputElement;
+    const tabLock = document.getElementById('tab-lock') as HTMLButtonElement;
+    const tabFree = document.getElementById('tab-free') as HTMLButtonElement;
+    const presetSelect = document.getElementById('preset') as HTMLSelectElement;
+    const fitSelect = document.getElementById('fit') as HTMLSelectElement;
+    const padField = document.getElementById('pad-field') as HTMLElement;
+    const padSelect = document.getElementById('pad-select') as HTMLSelectElement;
+    const padColor = document.getElementById('pad-color') as HTMLInputElement;
+
+    const progress = document.getElementById('progress') as HTMLElement;
+    const progressBar = document.getElementById('progress-bar') as HTMLElement;
+    const convertBtn = document.getElementById('convert') as HTMLButtonElement;
+    const cancelBtn = document.getElementById('cancel') as HTMLButtonElement;
+    const clearBtn = document.getElementById('clear') as HTMLButtonElement;
+    const status = document.getElementById('status') as HTMLElement;
+
+    let files: File[] = [];
+    let busy = false;
+    let cancelled = false;
+
+    // ---------- 尺寸调整的状态 ----------
+    type SizeMode = 'original' | 'percent' | 'pixels';
+    let sizeMode: SizeMode = 'original';
+    let aspectLocked = true;
+    /** 第一张能解码的图的原始尺寸，用来做锁比例联动和目标尺寸预览 */
+    let refSize: { width: number; height: number } | null = null;
+    /** 文件列表里顺手显示的每张图的像素尺寸 */
+    const dims = new Map<File, { width: number; height: number }>();
+    const pendingDims = new Set<File>();
+
+    // §16：四类反馈各有各的说法，不共用一句"处理中"
+    type Kind = 'busy' | 'done' | 'warn' | 'error' | 'idle';
+
+    function say(kind: Kind, text: string) {
+        status.className = 't-status';
+        if (kind !== 'idle') status.classList.add(`is-${kind}`);
+        status.textContent = text;
+    }
+
+    // ---------- 运行时探测：浏览器不支持的格式直接禁掉，
+    // 而不是让它静默导出一张改了后缀的 PNG ----------
+    const supported = new Map<string, boolean>();
+
+    for (const option of Array.from(formatSelect.options)) {
+        const format = FORMATS.find((item) => item.mime === option.value);
+        if (!format) continue;
+
+        const ok = supportsFormat(format);
+        supported.set(format.mime, ok);
+        if (!ok) {
+            option.disabled = true;
+            option.textContent = `${format.label}（当前浏览器不支持导出）`;
+        }
+    }
+
+    const firstUsable = Array.from(formatSelect.options).find((option) => !option.disabled);
+    if (firstUsable) formatSelect.value = firstUsable.value;
+
+    function currentFormat() {
+        return FORMATS.find((item) => item.mime === formatSelect.value) ?? FORMATS[0];
+    }
+
+    function syncFormat() {
+        const format = currentFormat();
+        // 无损格式给质量滑块是骗人的——canvas 会直接忽略这个参数
+        qualityField.hidden = !format.lossy;
+        formatNote.textContent = format.note ?? '';
+        formatNote.hidden = !format.note;
+    }
+
+    // ---------- 尺寸模式切换 ----------
+    function setMode(next: SizeMode) {
+        sizeMode = next;
+        tabOriginal.setAttribute('aria-selected', String(next === 'original'));
+        tabPercent.setAttribute('aria-selected', String(next === 'percent'));
+        tabPixels.setAttribute('aria-selected', String(next === 'pixels'));
+        panePercent.hidden = next !== 'percent';
+        panePixels.hidden = next !== 'pixels';
+        if (next === 'pixels') prefillPixels();
+        refreshResizeHint();
+    }
+
+    tabOriginal.addEventListener('click', () => setMode('original'));
+    tabPercent.addEventListener('click', () => setMode('percent'));
+    tabPixels.addEventListener('click', () => setMode('pixels'));
+
+    function prefillPixels() {
+        // 第一次进像素模式时把原图尺寸填进去，用户在它基础上改，比从空白开始快
+        if (!refSize) return;
+        if (pxWidth.value === '' && pxHeight.value === '') {
+            pxWidth.value = String(refSize.width);
+            pxHeight.value = String(refSize.height);
+        }
+    }
+
+    // ---------- 像素输入：锁定比例联动 ----------
+    function parseSide(el: HTMLInputElement): number | null {
+        if (el.value.trim() === '') return null;
+        const n = Math.round(Number(el.value));
+        if (!Number.isFinite(n)) return null;
+        return Math.min(MAX_SIDE, Math.max(1, n));
+    }
+
+    function deriveOtherSide(edited: 'width' | 'height') {
+        if (!aspectLocked || !refSize) return;
+        if (edited === 'width' && pxWidth.value !== '') {
+            const w = Number(pxWidth.value);
+            if (Number.isFinite(w) && w > 0) {
+                pxHeight.value = String(Math.max(1, Math.round((w * refSize.height) / refSize.width)));
+            }
+        } else if (edited === 'height' && pxHeight.value !== '') {
+            const h = Number(pxHeight.value);
+            if (Number.isFinite(h) && h > 0) {
+                pxWidth.value = String(Math.max(1, Math.round((h * refSize.width) / refSize.height)));
+            }
+        }
+    }
+
+    function syncLockTabs() {
+        tabLock.setAttribute('aria-selected', String(aspectLocked));
+        tabFree.setAttribute('aria-selected', String(!aspectLocked));
+    }
+
+    tabLock.addEventListener('click', () => {
+        aspectLocked = true;
+        syncLockTabs();
+        // 打开锁的那一刻就把两边对齐到原图比例，避免之后一动就跳
+        deriveOtherSide(pxWidth.value !== '' ? 'width' : 'height');
+        refreshResizeHint();
+    });
+
+    tabFree.addEventListener('click', () => {
+        aspectLocked = false;
+        syncLockTabs();
+        refreshResizeHint();
+    });
+
+    pxWidth.addEventListener('input', () => {
+        deriveOtherSide('width');
+        presetSelect.value = '';
+        refreshResizeHint();
+    });
+
+    pxHeight.addEventListener('input', () => {
+        deriveOtherSide('height');
+        presetSelect.value = '';
+        refreshResizeHint();
+    });
+
+    presetSelect.addEventListener('change', () => {
+        const value = presetSelect.value;
+        if (!value) return;
+        const [w, h] = value.split('x').map(Number);
+        pxWidth.value = String(w);
+        pxHeight.value = String(h);
+        // 预设是精确目标，切到自由比例：之后手动微调一边不会把另一边带跑
+        aspectLocked = false;
+        syncLockTabs();
+        refreshResizeHint();
+    });
+
+    scale.addEventListener('input', () => {
+        scaleValue.textContent = `${scale.value}%`;
+        refreshResizeHint();
+    });
+
+    fitSelect.addEventListener('change', () => {
+        padField.hidden = fitSelect.value !== 'contain';
+        refreshResizeHint();
+    });
+
+    padSelect.addEventListener('change', () => {
+        padColor.hidden = padSelect.value !== 'custom';
+    });
+
+    /** 把当前表单状态解析成一个具体的目标尺寸，只用来做预览提示 */
+    function previewTarget() {
+        if (!refSize) return null;
+        if (sizeMode === 'percent') {
+            return computeTargetSize(refSize.width, refSize.height, {
+                mode: 'percent',
+                percent: Number(scale.value),
+                fit: 'stretch',
+            });
+        }
+        if (sizeMode === 'pixels') {
+            return computeTargetSize(refSize.width, refSize.height, {
+                mode: 'pixels',
+                width: parseSide(pxWidth) ?? undefined,
+                height: parseSide(pxHeight) ?? undefined,
+                lockAspect: aspectLocked,
+                fit: fitSelect.value as FitMode,
+            });
+        }
+        return null;
+    }
+
+    function refreshResizeHint() {
+        if (sizeMode === 'original') {
+            resizeHint.textContent = '';
+            return;
+        }
+
+        const target = previewTarget();
+        if (!target) {
+            resizeHint.textContent = sizeMode === 'pixels' ? '加入图片后这里会预览目标尺寸' : '';
+            return;
+        }
+
+        let text = `→ ${target.width} × ${target.height}`;
+
+        if (refSize && sizeMode === 'pixels') {
+            const srcRatio = refSize.width / refSize.height;
+            const dstRatio = target.width / target.height;
+            const ratioDiffers = Math.abs(srcRatio - dstRatio) > 0.01;
+
+            if (ratioDiffers && fitSelect.value === 'stretch') text += ' · 比例不同，拉伸会变形';
+            else if (ratioDiffers && fitSelect.value === 'cover') text += ' · 超出部分居中裁掉';
+            else if (ratioDiffers && fitSelect.value === 'contain')
+                text += padSelect.value ? ' · 留白用所选底色填充' : ' · 留白保持透明';
+
+            const grow = Math.max(target.width / refSize.width, target.height / refSize.height);
+            if (grow > 1.5) text += ' · 放大可能模糊';
+        } else if (refSize && sizeMode === 'percent' && Number(scale.value) > 150) {
+            text += ' · 放大可能模糊';
+        }
+
+        resizeHint.textContent = text;
+    }
+
+    /** 把表单收集成 encodeImage 吃的选项；返回 error 时调用方直接报错拦下 */
+    function collectResize(): { options?: ResizeOptions; error?: string } {
+        if (sizeMode === 'original') return {};
+
+        if (sizeMode === 'percent') {
+            return {
+                options: { mode: 'percent', percent: Number(scale.value), fit: 'stretch' },
+            };
+        }
+
+        const width = parseSide(pxWidth);
+        const height = parseSide(pxHeight);
+        if (width == null && height == null) {
+            return { error: '按像素调整需要至少填写宽度或高度' };
+        }
+
+        const options: ResizeOptions = {
+            mode: 'pixels',
+            width: width ?? undefined,
+            height: height ?? undefined,
+            lockAspect: aspectLocked,
+            fit: fitSelect.value as FitMode,
+        };
+
+        if (options.fit === 'contain') {
+            const pad = padSelect.value;
+            options.padColor = pad === 'custom' ? padColor.value : pad || undefined;
+        }
+
+        return { options };
+    }
+
+    function syncFiles() {
+        countLabel.textContent = String(files.length);
+        panel.hidden = files.length === 0;
+
+        filesBox.replaceChildren(
+            ...files.map((file, index) => {
+                const row = document.createElement('div');
+                row.className = 't-file';
+
+                const name = document.createElement('span');
+                name.className = 't-file-name';
+                // textContent 而不是 innerHTML：文件名里的 < > 不该被当成标签
+                name.textContent = file.name;
+
+                const size = document.createElement('span');
+                size.className = 't-file-size';
+                const dim = dims.get(file);
+                size.textContent = dim
+                    ? `${formatSize(file.size)} · ${dim.width}×${dim.height}`
+                    : formatSize(file.size);
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 't-file-remove';
+                remove.setAttribute('aria-label', `移除 ${file.name}`);
+                remove.innerHTML =
+                    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>';
+                remove.addEventListener('click', () => {
+                    if (busy) return;
+                    files.splice(index, 1);
+                    dims.delete(file);
+                    syncFiles();
+                    say('idle', '');
+                });
+
+                row.append(name, size, remove);
+                return row;
+            })
+        );
+    }
+
+    /** 后台读一张图的像素尺寸：列表里显示出来，顺便定下锁比例用的基准 */
+    async function ensureDims(file: File) {
+        if (dims.has(file) || pendingDims.has(file)) return;
+        pendingDims.add(file);
+        try {
+            const image = await loadImage(file);
+            dims.set(file, { width: image.naturalWidth, height: image.naturalHeight });
+            if (!refSize) {
+                refSize = dims.get(file)!;
+                if (sizeMode === 'pixels') prefillPixels();
+                refreshResizeHint();
+            }
+            if (!busy) syncFiles();
+        } catch {
+            // 解码不了的文件转换时自然会失败并进 failed 列表，这里不用打断用户
+        } finally {
+            pendingDims.delete(file);
+        }
+    }
+
+    function addFiles(list: FileList | null) {
+        if (!list || busy) return;
+
+        const incoming = Array.from(list).filter((file) => file.type.startsWith('image/'));
+        const rejected = list.length - incoming.length;
+
+        // 同一个文件拖两次只留一份
+        const seen = new Set(files.map((file) => `${file.name}|${file.size}|${file.lastModified}`));
+        let added = 0;
+
+        for (const file of incoming) {
+            const key = `${file.name}|${file.size}|${file.lastModified}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            files.push(file);
+            added += 1;
+            ensureDims(file);
+        }
+
+        syncFiles();
+
+        if (rejected > 0) say('warn', `已忽略 ${rejected} 个非图片文件`);
+        else if (added === 0 && incoming.length > 0) say('warn', '这些图片已经在列表里了');
+        else say('idle', '');
+    }
+
+    drop.addEventListener('click', () => input.click());
+
+    drop.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            input.click();
+        }
+    });
+
+    drop.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        drop.classList.add('is-over');
+    });
+
+    drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
+
+    drop.addEventListener('drop', (event) => {
+        event.preventDefault();
+        drop.classList.remove('is-over');
+        addFiles(event.dataTransfer?.files ?? null);
+    });
+
+    input.addEventListener('change', () => {
+        addFiles(input.files);
+        // 清空 value，否则再选同一个文件不会触发 change
+        input.value = '';
+    });
+
+    formatSelect.addEventListener('change', syncFormat);
+
+    // §1：滑块拖动过程中数值就跟着走，不等松手
+    quality.addEventListener('input', () => {
+        qualityValue.textContent = `${quality.value}%`;
+    });
+
+    clearBtn.addEventListener('click', () => {
+        if (busy) return;
+        files = [];
+        dims.clear();
+        refSize = null;
+        pxWidth.value = '';
+        pxHeight.value = '';
+        presetSelect.value = '';
+        syncFiles();
+        refreshResizeHint();
+        say('idle', '');
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        if (!busy) return;
+        cancelled = true;
+        say('warn', '正在停下…');
+    });
+
+    function setProgress(done: number, total: number) {
+        progress.hidden = total < 1;
+        progressBar.style.transform = `scaleX(${total ? done / total : 0})`;
+    }
+
+    // 每张之间让出一帧，浏览器才有机会把进度条画出来
+    const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+
+    convertBtn.addEventListener('click', async () => {
+        if (busy || files.length === 0) return;
+
+        const format = currentFormat();
+        if (supported.get(format.mime) === false) {
+            say('error', `当前浏览器无法导出 ${format.label}，换一个格式试试`);
+            return;
+        }
+
+        const picked = collectResize();
+        if (picked.error) {
+            say('error', picked.error);
+            return;
+        }
+
+        busy = true;
+        cancelled = false;
+        convertBtn.disabled = true;
+        clearBtn.disabled = true;
+        cancelBtn.hidden = false;
+
+        const value = Number(quality.value) / 100;
+        const results: ZipEntry[] = [];
+        const failed: string[] = [];
+        const total = files.length;
+
+        setProgress(0, total);
+
+        for (let i = 0; i < total; i += 1) {
+            if (cancelled) break;
+
+            const file = files[i];
+            say('busy', `正在转换 ${i + 1} / ${total}：${file.name}`);
+            await nextFrame();
+
+            try {
+                const image = await loadImage(file);
+                const blob = await encodeImage(image, format, value, picked.options);
+                results.push({
+                    name: replaceExt(file.name, format.ext),
+                    data: new Uint8Array(await blob.arrayBuffer()),
+                });
+            } catch (error) {
+                failed.push(file.name);
+                console.error(error);
+            }
+
+            setProgress(i + 1, total);
+        }
+
+        busy = false;
+        convertBtn.disabled = false;
+        clearBtn.disabled = false;
+        cancelBtn.hidden = true;
+
+        if (results.length === 0) {
+            setProgress(0, 0);
+            say(cancelled ? 'warn' : 'error', cancelled ? '已取消，没有导出文件' : '一张都没转成功，换个格式或换张图试试');
+            return;
+        }
+
+        if (results.length === 1) {
+            const [only] = results;
+            downloadBlob(new Blob([only.data], { type: format.mime }), only.name);
+        } else {
+            // 浏览器会拦截连续多次下载，所以多个文件打成一个 ZIP 再下
+            const stamp = new Date().toISOString().slice(0, 10);
+            downloadBlob(zipStore(results), `converted-${format.ext}-${stamp}.zip`);
+        }
+
+        const suffix = results.length > 1 ? '（已打包为 ZIP）' : '';
+        // 像素是绝对目标，所有文件都一样大，才值得写进结果提示；
+        // 百分比模式下每张结果不同，预览提示里已经说清楚了。
+        let sizeNote = '';
+        if (picked.options?.mode === 'pixels' && refSize) {
+            const target = computeTargetSize(refSize.width, refSize.height, picked.options);
+            sizeNote = `（调整为 ${target.width} × ${target.height}）`;
+        }
+
+        if (cancelled) {
+            say('warn', `已取消，只导出了前 ${results.length} 个文件${suffix}`);
+        } else if (failed.length > 0) {
+            say('warn', `完成 ${results.length} 个，${failed.length} 个失败：${failed.join('、')}`);
+        } else {
+            say('done', `已导出 ${results.length} 个 ${format.label} 文件${sizeNote}${suffix}`);
+        }
+    });
+
+    syncFormat();
+    syncFiles();
+    refreshResizeHint();
+</script>

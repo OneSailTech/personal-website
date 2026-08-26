@@ -10,7 +10,7 @@ const G_LEVELS = 7;
 const B_LEVELS = 6;
 const TRANSPARENT_INDEX = 255;
 
-function buildPalette(): Uint8Array {
+function buildPalette(): Uint8Array<ArrayBuffer> {
     const table = new Uint8Array(256 * 3);
     for (let r = 0; r < R_LEVELS; r += 1) {
         for (let g = 0; g < G_LEVELS; g += 1) {
@@ -27,7 +27,7 @@ function buildPalette(): Uint8Array {
 
 const PALETTE = buildPalette();
 
-function quantize(image: ImageData): Uint8Array {
+function quantize(image: ImageData): Uint8Array<ArrayBuffer> {
     const { width, height, data } = image;
     const indices = new Uint8Array(width * height);
     // 误差缓冲用浮点，直接在整型上累加会把误差截断掉
@@ -88,7 +88,7 @@ function quantize(image: ImageData): Uint8Array {
 // 位序是低位在前，这一点和 TIFF/PNG 的习惯相反。
 const MAX_CODES = 1 << 12;
 
-function lzwEncode(indices: Uint8Array, minCodeSize: number): Uint8Array {
+function lzwEncode(indices: Uint8Array, minCodeSize: number): Uint8Array<ArrayBuffer> {
     const clearCode = 1 << minCodeSize;
     const endCode = clearCode + 1;
 
@@ -150,7 +150,7 @@ function lzwEncode(indices: Uint8Array, minCodeSize: number): Uint8Array {
 }
 
 // 图像数据按不超过 255 字节的子块串起来，最后跟一个长度 0 的块收尾
-function toSubBlocks(bytes: Uint8Array): Uint8Array {
+function toSubBlocks(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
     const blocks = Math.ceil(bytes.length / 255);
     const out = new Uint8Array(bytes.length + blocks + 1);
     let read = 0;

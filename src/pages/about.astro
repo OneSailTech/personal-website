@@ -177,6 +177,12 @@ const allCerts = [
     <script>
         import { copyText } from '../scripts/copy';
 
+        // viewer.min.js 是经典脚本，把构造器挂在 window 上；这里只声明用到的最小接口
+        declare const Viewer: new (
+            element: Element | null,
+            options?: Record<string, unknown>
+        ) => { hide(): void; view(index: number): void };
+
         // 证书浏览器。图片池藏在 #gallery 里，点获奖条目时按索引打开。
         const galleryElement = document.getElementById('gallery');
         const viewer = new Viewer(galleryElement, {
@@ -193,7 +199,7 @@ const allCerts = [
 
         // 点遮罩关闭
         document.addEventListener('click', (e) => {
-            const container = document.querySelector('.viewer-container');
+            const container = document.querySelector<HTMLElement>('.viewer-container');
             if (!container || container.style.display === 'none') return;
             if (e.target === container || e.target === container.querySelector('.viewer-mask')) {
                 viewer.hide();

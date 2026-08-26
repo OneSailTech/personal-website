@@ -6,8 +6,8 @@
 
 | 路径 | 内容 |
 | --- | --- |
-| `/` | 首页：署名 hero（网格光效随指针亮起）、站点体量、最新文章 |
-| `/about` | 关于：个人介绍、技术栈、教育经历、荣誉与证书（点击放大） |
+| `/` | 首页：署名 hero、站点体量、最新文章 |
+| `/about` | 关于：个人介绍、技术栈、教育经历、荣誉与证书 |
 | `/posts`、`/posts/[slug]` | 文章列表与详情，带阅读进度条 |
 | `/projects` | 开源项目列表 |
 | `/tools` | 工具索引，下面六个工具页 |
@@ -15,7 +15,7 @@
 
 六个工具**全部在浏览器里跑**，文件不上传到任何服务器：
 
-- `/tools/image-converter` 图片格式转换。PNG / JPEG / WEBP 走 Canvas，BMP / TIFF / GIF / ICO 是本仓库自己写的编码器（`src/scripts/image/`），SVG 内嵌 PNG data URL。多文件会打包成一个 ZIP（`src/scripts/zip.ts` 手写的 store 模式）。
+- `/tools/image-tool` 图片处理：格式转换 + 尺寸调整。PNG / JPEG / WEBP 走 Canvas，BMP / TIFF / GIF / ICO 是本仓库自己写的编码器（`src/scripts/image/`，尺寸逻辑在 `resize.ts`），SVG 内嵌 PNG data URL；可按百分比或像素缩放，支持锁定比例、预设尺寸、留白（contain）/居中裁剪（cover）。多文件会打包成一个 ZIP（`src/scripts/zip.ts` 手写的 store 模式）。
 - `/tools/video-converter` 视频转码与抽音轨，ffmpeg.wasm 从 CDN 按需加载，整个会话只加载一次。
 - `/tools/base64` 文本与图片的 Base64 互转。
 - `/tools/color-converter` HEX / RGB / HSL 实时互转，带系统取色器。

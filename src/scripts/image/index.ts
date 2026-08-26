@@ -5,6 +5,11 @@ import { encodeBmp } from './bmp';
 import { encodeGif } from './gif';
 import { encodeIco } from './ico';
 import { encodeTiff } from './tiff';
+import { computeTargetSize, drawResized, type ResizeOptions } from './resize';
+
+// 页面只跟这里打交道，尺寸相关的类型和纯函数也从这里转出去
+export type { ResizeMode, FitMode, ResizeOptions } from './resize';
+export { computeTargetSize, MAX_SIDE } from './resize';
 
 export interface ImageFormat {
     mime: string;
@@ -75,7 +80,7 @@ export function supportsFormat(format: ImageFormat): boolean {
     }
 }
 
-export type Source = ImageBitmap | HTMLImageElement;
+export type Source = ImageBitmap | HTMLImageElement | HTMLCanvasElement;
 
 export function sourceSize(source: Source) {
     const width = source instanceof HTMLImageElement ? source.naturalWidth : source.width;
@@ -140,28 +145,42 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 /**
  * 把一张图编成目标格式。
  * quality 传 0–1，只对有损格式有意义；无损格式会忽略它。
+ * resize 传了就先把图调整到目标尺寸（含裁剪 / 留白），所有分支共用同一个结果尺寸；
+ * 不传则行为与旧版完全一致。
  */
 export async function encodeImage(
     source: Source,
     format: ImageFormat,
-    quality: number
+    quality: number,
+    resize?: ResizeOptions
 ): Promise<Blob> {
-    const { width, height } = sourceSize(source);
-    if (!width || !height) throw new Error('图片尺寸异常');
+    const src = sourceSize(source);
+    if (!src.width || !src.height) throw new Error('图片尺寸异常');
+
+    const target = resize
+        ? computeTargetSize(src.width, src.height, resize)
+        : { width: src.width, height: src.height };
+
+    const render = (flatten = false) =>
+        resize
+            ? drawResized(source, target.width, target.height, resize, flatten)
+            : toCanvas(source, target.width, target.height, flatten);
 
     if (format.native) {
-        const { canvas } = toCanvas(source, width, height, format.flatten);
+        const { canvas } = render(format.flatten);
         return canvasToBlob(canvas, format.mime, format.lossy ? quality : undefined);
     }
 
     if (format.mime === 'image/x-icon') {
-        const longest = Math.max(width, height);
+        // 调整过尺寸时按调整后的长边挑档位；每一档仍然把画面拉成正方形，和原逻辑一致
+        const base: Source = resize ? render().canvas : source;
+        const longest = Math.max(target.width, target.height);
         const sizes = ICO_SIZES.filter((size) => size <= longest);
         if (sizes.length === 0) sizes.push(longest);
 
         const images = await Promise.all(
             sizes.map(async (size) => {
-                const { canvas } = toCanvas(source, size, size);
+                const { canvas } = toCanvas(base, size, size);
                 const blob = await canvasToBlob(canvas, 'image/png');
                 return { size, data: new Uint8Array(await blob.arrayBuffer()) };
             })
@@ -172,18 +191,18 @@ export async function encodeImage(
     if (format.mime === 'image/svg+xml') {
         // 原来的实现把 blob: 地址写进 SVG，然后下一行就把它 revoke 了，
         // 导出的文件永远是空白。改成内嵌 data: URL，文件自带像素、可离线打开。
-        const { canvas } = toCanvas(source, width, height);
+        const { canvas } = render();
         const png = await canvasToBlob(canvas, 'image/png');
         const dataUrl = await blobToDataUrl(png);
         const svg =
-            `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" ` +
-            `viewBox="0 0 ${width} ${height}">` +
-            `<image width="${width}" height="${height}" href="${dataUrl}"/></svg>`;
+            `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}" ` +
+            `viewBox="0 0 ${canvas.width} ${canvas.height}">` +
+            `<image width="${canvas.width}" height="${canvas.height}" href="${dataUrl}"/></svg>`;
         return new Blob([svg], { type: 'image/svg+xml' });
     }
 
-    const { ctx } = toCanvas(source, width, height, format.flatten);
-    const pixels = ctx.getImageData(0, 0, width, height);
+    const { ctx } = render(format.flatten);
+    const pixels = ctx.getImageData(0, 0, target.width, target.height);
 
     if (format.mime === 'image/bmp') return encodeBmp(pixels);
     if (format.mime === 'image/gif') return encodeGif(pixels);

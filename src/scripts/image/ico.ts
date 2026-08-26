@@ -4,7 +4,7 @@
 
 export interface IcoImage {
     size: number;
-    data: Uint8Array;
+    data: Uint8Array<ArrayBuffer>;
 }
 
 export function encodeIco(images: IcoImage[]): Blob {

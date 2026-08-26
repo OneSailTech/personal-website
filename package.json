@@ -18,5 +18,9 @@
   "description": "谢怡帆的个人站点：Astro 6 静态生成，手写 CSS。",
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^6.0.3"
+  }
 }

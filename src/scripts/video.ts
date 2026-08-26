@@ -183,7 +183,7 @@ export function terminateFFmpeg(): void {
 }
 
 /** 把 readFile 的结果复制成一份独立的字节。 */
-export function toBytes(data: unknown): Uint8Array {
+export function toBytes(data: unknown): Uint8Array<ArrayBuffer> {
     // 原来写的是 new Blob([data.buffer])：buffer 是 ffmpeg 整块堆内存，
     // 比这个视图长得多，拿到的文件会带上一大截无关数据。
     // 另外必须复制：视图直接指向 worker 的内存，下一个任务会把它覆盖掉。

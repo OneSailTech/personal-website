@@ -33,13 +33,14 @@ function dosDateTime(date: Date) {
 
 export interface ZipEntry {
     name: string;
-    data: Uint8Array;
+    /** BlobPart 只认 ArrayBuffer 后端的视图，这里把类型钉死，省得每个调用点都报错 */
+    data: Uint8Array<ArrayBuffer>;
 }
 
 export function zipStore(entries: ZipEntry[], date = new Date()): Blob {
     const encoder = new TextEncoder();
     const parts: BlobPart[] = [];
-    const central: Uint8Array[] = [];
+    const central: Uint8Array<ArrayBuffer>[] = [];
     const { time, day } = dosDateTime(date);
     let offset = 0;
 
