@@ -37,6 +37,20 @@ const { variant = 'page' } = Astro.props;
         z-index: -1;
         overflow: hidden;
         pointer-events: none;
+        /* 整层在底部柔和退场，避免指针光斑碰到容器边界时被水平截断。 */
+        --fade-start: calc(100% - 96px);
+        -webkit-mask-image: linear-gradient(
+            to bottom,
+            #000 0,
+            #000 var(--fade-start),
+            transparent 100%
+        );
+        mask-image: linear-gradient(
+            to bottom,
+            #000 0,
+            #000 var(--fade-start),
+            transparent 100%
+        );
         /* 扫描线的行程。cqh 支持时用容器高度，见下面的 @supports */
         --scan-to: 620px;
         container-type: size;
@@ -44,6 +58,7 @@ const { variant = 'page' } = Astro.props;
 
     .fx--hero {
         height: calc(var(--nav-h) + var(--hero-h));
+        --fade-start: calc(100% - 120px);
     }
 
     @supports (height: 100cqh) {
