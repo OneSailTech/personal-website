@@ -372,5 +372,5 @@ GanJunMi-App 是培训管理系统的移动端应用，核心亮点在于：
 
 相关项目：
 
-- [GanJunMi-Admin](https://github.com/XieYifan1201/GanJunMi-Admin) — 后台管理系统
-- [GanJunMi-Server](https://github.com/XieYifan1201/GanJunMi-Server) — 后端服务
+- [GanJunMi-Admin](https://github.com/OneSailTech/GanJunMi-Admin) — 后台管理系统
+- [GanJunMi-Server](https://github.com/OneSailTech/GanJunMi-Server) — 后端服务
