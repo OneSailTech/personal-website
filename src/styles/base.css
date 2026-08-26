@@ -398,8 +398,11 @@ a:hover {
 @keyframes u-rise {
     from {
         opacity: 0;
-        /* 位移量交给 --rise：滚动驱动的那一档要更小，理由见下面 */
-        transform: translate3d(0, var(--rise, 8px), 0);
+        /* 位移量交给 --rise，两档共用一条 keyframes（var() 在 keyframes 里
+           是按被动画的元素解析的，所以同一条规则能出两种性格）。
+           14px 是"看得见但不抢戏"的下限：低于 10px 的位移在 450ms 里
+           每帧只走不到 1px，肉眼读不出运动，等于白写（§11）。 */
+        transform: translate3d(0, var(--rise, 14px), 0);
     }
     to {
         opacity: 1;
@@ -427,7 +430,7 @@ a:hover {
 /* 依次入场：交给 --i 控制延迟，不再为每个 nth-child 手写一条 */
 .u-stagger > * {
     animation: u-rise var(--dur-spring) var(--ease-spring) both;
-    animation-delay: calc(var(--i, 0) * 60ms);
+    animation-delay: calc(var(--i, 0) * 70ms);
 }
 
 /* 折叠版：首屏之外的内容不该在页面加载时就把动画放完——用户滚到了才升起。
@@ -440,16 +443,19 @@ a:hover {
    1. 缓动必须是 linear。滚动驱动的动画里"进度"就是滚动位置，再套一条
       ease 曲线等于让元素的位移与滚动量不成正比——手上匀速滚，眼里的卡片
       却忽快忽慢，那正是"顿挫感"的来源（§2 内容跟着输入 1:1 走）。
-   2. 区间收到 entry 6%~34%，位移收到 5px。元素刚探进视口下沿就已经到位，
-      等它进入阅读区时是完全静止的——滚动时正在读的那一段不该还在动。 */
+   2. 区间必须落在"看得见的那段路"上。entry 的 0%~100% 量的是元素自己那段
+      高度：0% 是它的上沿刚碰到视口下沿，100% 是它整个进来了。所以
+      entry 6%~34% 只占元素高度的前三分之一——卡片还是贴在屏幕最下面的
+      一条缝时动画就播完了，再配 5px 位移，等于什么都没发生。
+      收成 entry 5%~90%：整段"从下沿升上来"的过程都在动，元素完全进屏时
+      刚好停住，之后它待在阅读区里是静止的——正在读的那一段不该还在动。 */
 @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
         .u-stagger--scroll > * {
-            --rise: 5px;
             animation: u-rise 1s linear both;
             animation-delay: 0s;
             animation-timeline: view();
-            animation-range: entry 6% entry 34%;
+            animation-range: entry 5% entry 90%;
         }
     }
 }
