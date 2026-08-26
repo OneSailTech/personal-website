@@ -16,7 +16,14 @@ html {
        hidden 会——这正是原先关于页头像漂移的成因之一。 */
     overflow-x: clip;
     scrollbar-gutter: stable;
-    scroll-behavior: smooth;
+    /* 这里原来有 scroll-behavior: smooth。它不只影响锚点跳转——Chromium 会把
+       滚轮和键盘的每一次滚动都塞进平滑滚动动画器，于是滚轮拨一格不再立刻跟手，
+       而是先滞后再补上，鼠标用户感觉到的就是一格一格的顿挫（§1 延迟一出现，
+       "直接操控"的感觉就断崖式下滑；§2 内容必须跟着输入 1:1 走）。
+       系统本身已经给滚轮做了平滑，不需要再叠一层。
+       需要平滑的地方各自显式声明：回到顶部走下面的 rAF，
+       Markdown 阅读器的目录跳转走 scrollIntoView({behavior:'smooth'})。
+       锚点跳转退回浏览器默认的瞬时定位——可预期，且下面这行照样生效。 */
     /* 吸顶导航会挡住锚点落点。Astro 给 Markdown 标题自动生成 id，
        文章里的 #锚点、跳转链接、skip-link 全都走这条路——不留出这段
        余量，点过去的标题正好被顶栏盖住（§4 可预期）。 */
@@ -27,12 +34,6 @@ html {
 @supports not (overflow-x: clip) {
     html {
         overflow-x: hidden;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    html {
-        scroll-behavior: auto;
     }
 }
 
@@ -397,7 +398,8 @@ a:hover {
 @keyframes u-rise {
     from {
         opacity: 0;
-        transform: translate3d(0, 8px, 0);
+        /* 位移量交给 --rise：滚动驱动的那一档要更小，理由见下面 */
+        transform: translate3d(0, var(--rise, 8px), 0);
     }
     to {
         opacity: 1;
@@ -432,14 +434,22 @@ a:hover {
    进度由 view() 提供，纯 CSS，没有 IntersectionObserver。
    注意 animation 简写会把 animation-timeline 重置成 auto，
    所以 timeline 必须写在简写之后，顺序不能调。
-   不支持 view() 的浏览器落回上面那条固定延迟的版本。 */
+   不支持 view() 的浏览器落回上面那条固定延迟的版本。
+
+   两处刻意与载入版不同：
+   1. 缓动必须是 linear。滚动驱动的动画里"进度"就是滚动位置，再套一条
+      ease 曲线等于让元素的位移与滚动量不成正比——手上匀速滚，眼里的卡片
+      却忽快忽慢，那正是"顿挫感"的来源（§2 内容跟着输入 1:1 走）。
+   2. 区间收到 entry 6%~34%，位移收到 5px。元素刚探进视口下沿就已经到位，
+      等它进入阅读区时是完全静止的——滚动时正在读的那一段不该还在动。 */
 @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
         .u-stagger--scroll > * {
-            animation: u-rise 1s var(--ease-out) both;
+            --rise: 5px;
+            animation: u-rise 1s linear both;
             animation-delay: 0s;
             animation-timeline: view();
-            animation-range: entry 8% entry 52%;
+            animation-range: entry 6% entry 34%;
         }
     }
 }

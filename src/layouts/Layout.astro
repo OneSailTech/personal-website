@@ -93,11 +93,11 @@ const ogImage = Astro.site ? new URL(image, Astro.site).href : image;
         </button>
 
         <script>
-            // 滚过一屏才出现。滚动监听按帧节流，回顶尊重减弱动效偏好
-            // （不能用内联 onclick 直接 scrollTo smooth——那会无视用户设置）。
+            // 滚过一屏才出现。滚动监听按帧节流。
             const toTop = document.getElementById('to-top');
 
             if (toTop) {
+                const still = window.matchMedia('(prefers-reduced-motion: reduce)');
                 let ticking = false;
 
                 const sync = () => {
@@ -117,9 +117,80 @@ const ogImage = Astro.site ? new URL(image, Astro.site).href : image;
 
                 sync();
 
+                // 这段滚动自己用 rAF 走，不用 scrollTo({ behavior: 'smooth' })：
+                // 浏览器内置平滑滚动的时长是固定的，长文章里上万像素也在几百毫秒内
+                // 走完，每帧位移远超可感知阈值，看上去就是"直接跳到顶"而不是滚上去
+                // （§11：平滑取决于帧里装了什么，不只是帧率）。这里让时长随距离开方
+                // 增长并封顶，末端的减速看得见，用户才知道自己落在了哪。
+                let raf = 0;
+
+                const stop = () => {
+                    if (!raf) return;
+                    cancelAnimationFrame(raf);
+                    raf = 0;
+                    release();
+                };
+
+                // §3：飞行途中用户一碰滚动就交还控制权，绝不把输入锁在动画后面
+                const keys = new Set([
+                    'ArrowUp',
+                    'ArrowDown',
+                    'PageUp',
+                    'PageDown',
+                    'Home',
+                    'End',
+                    ' ',
+                ]);
+
+                const onKey = (e: KeyboardEvent) => {
+                    if (keys.has(e.key)) stop();
+                };
+
+                const grab = () => {
+                    window.addEventListener('wheel', stop, { passive: true });
+                    window.addEventListener('touchstart', stop, { passive: true });
+                    window.addEventListener('keydown', onKey);
+                };
+
+                const release = () => {
+                    window.removeEventListener('wheel', stop);
+                    window.removeEventListener('touchstart', stop);
+                    window.removeEventListener('keydown', onKey);
+                };
+
                 toTop.addEventListener('click', () => {
-                    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+                    const from = window.scrollY;
+                    if (from <= 0) return;
+
+                    stop();
+
+                    // 大幅位移是前庭系统最敏感的那一类，减弱动效时直接落位（§14）
+                    if (still.matches) {
+                        window.scrollTo(0, 0);
+                        return;
+                    }
+
+                    const ms = Math.min(880, 300 + Math.sqrt(from) * 12);
+                    const t0 = performance.now();
+                    grab();
+
+                    const step = (now: number) => {
+                        const t = Math.min(1, (now - t0) / ms);
+                        // 与 --ease-out 同一个性格：起步快，末端稳稳收住
+                        const eased = 1 - (1 - t) ** 3;
+                        // 两参形式一定是瞬时的——平滑由上面这条曲线负责，
+                        // 不能再让浏览器在每一帧上叠一次自己的平滑滚动。
+                        window.scrollTo(0, from * (1 - eased));
+
+                        if (t < 1) {
+                            raf = requestAnimationFrame(step);
+                        } else {
+                            raf = 0;
+                            release();
+                        }
+                    };
+
+                    raf = requestAnimationFrame(step);
                 });
             }
         </script>
