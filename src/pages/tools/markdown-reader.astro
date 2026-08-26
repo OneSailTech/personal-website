@@ -1,424 +1,545 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import Nav from '../../components/Nav.astro';
+import ToolShell from '../../components/ToolShell.astro';
 import '../../styles/markdown.css';
 ---
 
-<Layout title="Markdown 阅读器 - XIE YIFAN" description="上传并预览 Markdown 文档">
-    <Nav active="工具" />
-
-    <main>
-        <div class="back-link-wrapper">
-            <a href="/tools" class="back-link">← 返回工具列表</a>
+<ToolShell
+    label="TOOL · DOC"
+    title="Markdown 阅读器"
+    subtitle="拖进来一个 .md 就能读。标题自动生成目录，字数和阅读时长一起算好；切到源码还能直接改，预览跟着变。"
+    description="上传、预览并编辑 Markdown 文档，自动生成目录与字数统计"
+    width="mid"
+>
+    <section class="t-panel" id="intake">
+        <div class="t-drop" id="drop" role="button" tabindex="0" aria-label="选择或拖入 Markdown 文件">
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+            >
+                <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 3 14 8 19 8" />
+                <line x1="9" y1="13" x2="15" y2="13" />
+                <line x1="9" y1="17" x2="13" y2="17" />
+            </svg>
+            <p class="t-drop-title">点这里选文件，或直接拖进来</p>
+            <p class="t-hint">.md / .markdown / .mdx / .txt；也可以在页面里直接粘贴（⌘ / Ctrl + V）</p>
+            <input
+                id="file"
+                type="file"
+                accept=".md,.markdown,.mdx,.txt,text/markdown,text/plain"
+                hidden
+            />
         </div>
 
-        <section id="tool-hero">
-            <h1>Markdown 阅读器</h1>
-            <p class="subtitle">上传 Markdown 文件，即时预览渲染效果</p>
-        </section>
-
-        <div class="tool-container">
-            <div class="upload-area" id="upload-area">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                    <polyline points="10 9 9 9 8 9"></polyline>
-                </svg>
-                <p>点击或拖拽 Markdown 文件到此处</p>
-                <span class="upload-hint">支持 .md、.markdown 文件</span>
-                <input type="file" id="file-input" accept=".md,.markdown" hidden />
-            </div>
-
-            <div class="editor-toggle" id="editor-toggle" style="display: none;">
-                <button class="toggle-btn active" data-mode="preview" onclick="switchMode('preview')">预览</button>
-                <button class="toggle-btn" data-mode="source" onclick="switchMode('source')">源码</button>
-            </div>
-
-            <div class="preview-container" id="preview-container" style="display: none;">
-                <div class="md-rendered" id="md-preview"></div>
-            </div>
-
-            <div class="source-container" id="source-container" style="display: none;">
-                <textarea id="source-text" oninput="autoResize(this); updatePreview()"></textarea>
-            </div>
+        <div class="t-actions">
+            <button class="u-btn u-btn--ghost" id="blank" type="button">从空白开始写</button>
+            <button class="u-btn u-btn--ghost" id="sample" type="button">看个示例</button>
         </div>
-    </main>
-</Layout>
 
-<script is:inline>
-const uploadArea = document.getElementById('upload-area');
-const fileInput = document.getElementById('file-input');
-const editorToggle = document.getElementById('editor-toggle');
-const previewContainer = document.getElementById('preview-container');
-const sourceContainer = document.getElementById('source-container');
-const mdPreview = document.getElementById('md-preview');
-const sourceText = document.getElementById('source-text');
+        <p class="t-status" id="intake-status" role="status" aria-live="polite"></p>
+    </section>
 
-let currentMode = 'preview';
+    <section class="t-panel" id="doc" hidden>
+        <header class="doc-bar">
+            <div class="doc-id">
+                <p class="doc-name" id="doc-name">未命名文档</p>
+                <p class="doc-meta" id="doc-meta"></p>
+            </div>
 
-uploadArea.addEventListener('click', () => fileInput.click());
+            <div class="t-segment" role="tablist" aria-label="查看方式">
+                <button id="tab-preview" type="button" role="tab" aria-selected="true">预览</button>
+                <button id="tab-source" type="button" role="tab" aria-selected="false">源码</button>
+            </div>
+        </header>
 
-uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.classList.add('drag-over');
-});
+        <details class="t-log" id="fm-fold" hidden>
+            <summary>Frontmatter</summary>
+            <pre class="t-log-body" id="fm-body"></pre>
+        </details>
 
-uploadArea.addEventListener('dragleave', () => {
-    uploadArea.classList.remove('drag-over');
-});
+        <details class="t-log" id="toc-fold" hidden>
+            <summary>目录</summary>
+            <nav class="t-log-body toc" id="toc" aria-label="文档目录"></nav>
+        </details>
 
-uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.classList.remove('drag-over');
-    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-});
+        <div id="view-preview" role="tabpanel" aria-labelledby="tab-preview">
+            <article class="md-rendered doc-body" id="preview"></article>
+        </div>
 
-fileInput.addEventListener('change', (e) => {
-    if (e.target.files.length) handleFile(e.target.files[0]);
-});
+        <div class="t-field" id="view-source" role="tabpanel" aria-labelledby="tab-source" hidden>
+            <label for="source">Markdown 源码</label>
+            <textarea
+                class="t-textarea source"
+                id="source"
+                spellcheck="false"
+                placeholder="在这里写 Markdown，切回预览就能看到效果"></textarea>
+            <p class="t-hint">改一个字预览就跟着变，不用点任何按钮。</p>
+        </div>
 
-function handleFile(file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const content = e.target.result;
-        sourceText.value = content;
-        mdPreview.innerHTML = renderMarkdown(content);
-        uploadArea.style.display = 'none';
-        editorToggle.style.display = 'flex';
-        switchMode('preview');
-    };
-    reader.readAsText(file);
-}
+        <div class="t-actions">
+            <button class="u-btn u-btn--primary" id="copy-md" type="button">复制源码</button>
+            <button class="u-btn u-btn--ghost" id="save-md" type="button">下载 .md</button>
+            <button class="u-btn u-btn--ghost" id="close" type="button">换一个文件</button>
+        </div>
 
-function switchMode(mode) {
-    currentMode = mode;
-    document.querySelectorAll('.toggle-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.mode === mode);
-    });
-    previewContainer.style.display = mode === 'preview' ? 'block' : 'none';
-    sourceContainer.style.display = mode === 'source' ? 'block' : 'none';
-    if (mode === 'source') {
-        const textarea = document.getElementById('source-text');
-        autoResize(textarea);
-    }
-}
-
-function autoResize(textarea) {
-    textarea.style.height = 'auto';
-    textarea.style.height = textarea.scrollHeight + 'px';
-}
-
-function updatePreview() {
-    const content = sourceText.value;
-    mdPreview.innerHTML = renderMarkdown(content);
-}
-
-function renderMarkdown(md) {
-    const lines = md.split('\n');
-    let html = '';
-    let inCodeBlock = false;
-    let codeContent = '';
-    let codeLang = '';
-    let inList = false;
-    let listType = '';
-
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-
-        if (line.startsWith('```')) {
-            if (inCodeBlock) {
-                html += `<pre><code class="language-${codeLang}">${escapeHtml(codeContent.trim())}</code></pre>`;
-                codeContent = '';
-                codeLang = '';
-                inCodeBlock = false;
-            } else {
-                if (inList) { html += `</${listType}>`; inList = false; }
-                inCodeBlock = true;
-                codeLang = line.slice(3).trim();
-            }
-            continue;
-        }
-
-        if (inCodeBlock) {
-            codeContent += line + '\n';
-            continue;
-        }
-
-        if (line.match(/^#{1,6}\s/)) {
-            if (inList) { html += `</${listType}>`; inList = false; }
-            const level = line.match(/^(#+)/)[1].length;
-            const text = line.replace(/^#+\s/, '');
-            html += `<h${level}>${text}</h${level}>`;
-            continue;
-        }
-
-        if (line.match(/^\s*[-*]\s/)) {
-            if (!inList || listType !== 'ul') {
-                if (inList) html += `</${listType}>`;
-                html += '<ul>';
-                inList = true;
-                listType = 'ul';
-            }
-            const text = line.replace(/^\s*[-*]\s/, '');
-            html += `<li>${renderInline(text)}</li>`;
-            continue;
-        }
-
-        if (line.match(/^\s*\d+\.\s/)) {
-            if (!inList || listType !== 'ol') {
-                if (inList) html += `</${listType}>`;
-                html += '<ol>';
-                inList = true;
-                listType = 'ol';
-            }
-            const text = line.replace(/^\s*\d+\.\s/, '');
-            html += `<li>${renderInline(text)}</li>`;
-            continue;
-        }
-
-        if (inList) { html += `</${listType}>`; inList = false; }
-
-        if (line.startsWith('> ')) {
-            html += `<blockquote>${renderInline(line.slice(2))}</blockquote>`;
-            continue;
-        }
-
-        if (line.match(/^---$/)) {
-            html += '<hr>';
-            continue;
-        }
-
-        if (line.trim() === '') {
-            continue;
-        }
-
-        if (line.match(/^\|(.+)\|$/)) {
-            const tableLines = [];
-            while (i < lines.length && lines[i].match(/^\|(.+)\|$/)) {
-                tableLines.push(lines[i]);
-                i++;
-            }
-            if (tableLines.length > 0) {
-                html += '<table>';
-                let isHeader = true;
-                for (const tLine of tableLines) {
-                    const cells = tLine.slice(1, -1).split('|').map(c => c.trim());
-                    if (cells.every(c => /^[-:]+$/.test(c))) {
-                        isHeader = false;
-                        continue;
-                    }
-                    const tag = isHeader ? 'th' : 'td';
-                    const row = cells.map(c => `<${tag}>${renderInline(c)}</${tag}>`).join('');
-                    html += `<tr>${row}</tr>`;
-                    isHeader = false;
-                }
-                html += '</table>';
-                i--;
-            }
-            continue;
-        }
-
-        if (line.match(/^!\[([^\]]*)\]\(([^)]+)\)/)) {
-            const match = line.match(/^!\[([^\]]*)\]\(([^)]+)\)/);
-            html += `<img src="${match[2]}" alt="${match[1]}" loading="lazy">`;
-            continue;
-        }
-
-        html += `<p>${renderInline(line)}</p>`;
-    }
-
-    if (inList) html += `</${listType}>`;
-
-    return html;
-}
-
-function renderInline(text) {
-    text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" loading="lazy">');
-    text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-    text = text.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
-    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    text = text.replace(/~~(.*?)~~/g, '<del>$1</del>');
-    text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-    return text;
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-</script>
+        <p class="t-status" id="doc-status" role="status" aria-live="polite"></p>
+    </section>
+</ToolShell>
 
 <style>
-    main {
+    /* ---------- 文档头 ---------- */
+
+    .doc-bar {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        padding: 2rem 0 4rem;
-        max-width: var(--site-narrow-width);
-        margin: 0 auto;
-        width: calc(100% - var(--site-page-gutter-total));
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: var(--sp-4);
     }
 
-    .back-link-wrapper {
-        width: 100%;
-        padding-bottom: 1.5rem;
-        animation: fadeInUp 0.8s ease-out;
+    .doc-id {
+        min-width: 0;
     }
 
-    .back-link {
-        color: #2563eb;
-        text-decoration: none;
-        font-size: 0.9rem;
+    .doc-name {
+        font-size: var(--fs-h3);
+        line-height: var(--lh-h3);
+        letter-spacing: var(--ls-h3);
         font-weight: 600;
-        display: inline-block;
-        transition: color 0.3s;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
-    .back-link:hover {
-        color: #1d4ed8;
+    /* 字数与时长用等宽数字：改一个字的时候这行不该整体跳动（§7 craft） */
+    .doc-meta {
+        margin-top: var(--sp-1);
+        color: var(--text-3);
+        font-family: var(--font-mono);
+        font-size: var(--fs-xs);
+        font-variant-numeric: tabular-nums;
     }
 
-    #tool-hero {
-        text-align: center;
-        margin-bottom: 3rem;
-        animation: fadeInUp 0.8s ease-out 0.1s both;
+    .doc-meta:empty {
+        display: none;
     }
 
-    #tool-hero h1 {
-        font-size: clamp(2rem, 5vw, 3rem);
-        font-weight: 900;
-        letter-spacing: -1px;
-        margin-bottom: 0.8rem;
-        color: #000;
+    /* ---------- 目录 ---------- */
+
+    /* 折叠体里是动态插入的 <a>，拿不到 Astro 的作用域属性，只能用 :global */
+    .toc {
+        display: grid;
+        gap: 1px;
+        font-family: var(--font-sans);
+        font-size: var(--fs-sm);
+        letter-spacing: 0;
+        text-transform: none;
     }
 
-    .subtitle {
-        font-size: 1.1rem;
-        color: #666;
+    .toc :global(a) {
+        display: block;
+        /* --depth 由脚本按标题层级写入，缩进就是层级本身 */
+        padding: var(--sp-1) var(--sp-2);
+        padding-left: calc(var(--sp-2) + var(--depth, 0) * var(--sp-4));
+        border-radius: var(--r-sm);
+        color: var(--text-2);
+        line-height: var(--lh-tight);
+        transition: background-color var(--dur-fast) var(--ease-out),
+            color var(--dur-fast) var(--ease-out);
     }
 
-    .tool-container {
-        width: 100%;
-        animation: fadeInUp 0.8s ease-out 0.2s both;
+    .toc :global(a:hover) {
+        background: var(--surface-sunken);
+        color: var(--accent);
     }
 
-    .upload-area {
-        background: #f9fafb;
-        border: 2px dashed #d1d5db;
-        border-radius: 16px;
-        padding: 3rem 2rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: var(--shadow-card);
+    /* h1 是文档标题级别，给它一点重量，扫一眼能看出骨架 */
+    .toc :global(a[data-level='1']) {
+        color: var(--text-1);
+        font-weight: 500;
     }
 
-    .upload-area:hover,
-    .upload-area.drag-over {
-        border-color: #2563eb;
-        background: #f0f4ff;
-        box-shadow: var(--shadow-card-hover);
+    /* ---------- 正文与源码 ---------- */
+
+    /* 阅读器不套内层滚动条：文档接着页面往下走，滚动条只有一根。
+       只是把行长收回舒适区间——面板本身有 960px 宽，正文不该跟着摊平。 */
+    .doc-body {
+        max-width: var(--measure);
     }
 
-    .upload-area svg {
-        color: #999;
-        margin-bottom: 1rem;
+    /* 目录跳转的落点要躲开固定顶栏，否则点进去标题正好被压在栏下面。
+       标题是 innerHTML 插进来的，拿不到作用域属性，用 :global。 */
+    .doc-body :global(h1),
+    .doc-body :global(h2),
+    .doc-body :global(h3),
+    .doc-body :global(h4),
+    .doc-body :global(h5),
+    .doc-body :global(h6) {
+        scroll-margin-top: calc(var(--nav-h) + var(--sp-4));
     }
 
-    .upload-area p {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
-        color: #333;
+    .doc-body:empty::after {
+        content: '这篇文档是空的，切到源码开始写。';
+        color: var(--text-3);
+        font-size: var(--fs-sm);
     }
 
-    .upload-hint {
-        font-size: 0.85rem;
-        color: #999;
+    /* 源码框比默认的 9rem 高得多：这是主要的编辑区，不是一个附属输入框 */
+    .source {
+        min-height: 26rem;
+        font-size: var(--fs-sm);
+        line-height: 1.7;
+        /* 缩进敏感的格式，禁用输入法之外的自动修正 */
+        tab-size: 4;
     }
 
-    .editor-toggle {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .toggle-btn {
-        padding: 0.6rem 1.5rem;
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        color: #666;
-        font-size: 0.9rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: var(--shadow-button-neutral);
-    }
-
-    .toggle-btn.active {
-        background: #2563eb;
-        border-color: #2563eb;
-        color: #fff;
-        box-shadow: var(--shadow-button);
-    }
-
-    .preview-container {
-        background: #fff;
-        border: 1px solid #eee;
-        border-radius: 16px;
-        padding: 3rem;
-        box-shadow: var(--shadow-card);
-    }
-
-    .md-rendered {
-        line-height: 1.8;
-        font-size: 1.05rem;
-    }
-
-    .source-container {
-        background: #fff;
-        border: 1px solid #eee;
-        border-radius: 16px;
-        padding: 3rem;
-        box-shadow: var(--shadow-card);
-    }
-
-    #source-text {
-        width: 100%;
-        min-height: 400px;
-        background: transparent;
-        border: none;
-        color: #000;
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-        font-size: 0.9rem;
-        line-height: 1.6;
-        resize: vertical;
-    }
-
-    #source-text:focus { outline: none; }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
+    @media (max-width: 700px) {
+        .doc-bar {
+            /* 窄屏上分段控件换行后靠左，跟标题对齐 */
+            align-items: flex-start;
         }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
 
-    @media (max-width: 900px) {
-        main { padding: 1.5rem 0 3rem; }
-        #tool-hero h1 { font-size: 2rem; }
-        .upload-area { padding: 2rem 1.5rem; }
-        .preview-container, .source-container { padding: 1.5rem; border-radius: 16px; }
-        .md-rendered { font-size: 1rem; }
-        .md-rendered h2 { font-size: 1.3rem; }
-        .md-rendered h3 { font-size: 1.15rem; }
+        .source {
+            min-height: 18rem;
+        }
     }
 </style>
+
+<script>
+    import {
+        countWords,
+        readingMinutes,
+        renderMarkdown,
+        splitFrontmatter,
+    } from '../../scripts/markdown';
+    import { copyText } from '../../scripts/copy';
+    import { downloadBlob } from '../../scripts/download';
+
+    const intake = document.getElementById('intake') as HTMLElement;
+    const drop = document.getElementById('drop') as HTMLElement;
+    const fileInput = document.getElementById('file') as HTMLInputElement;
+    const blankBtn = document.getElementById('blank') as HTMLButtonElement;
+    const sampleBtn = document.getElementById('sample') as HTMLButtonElement;
+    const intakeStatus = document.getElementById('intake-status') as HTMLElement;
+
+    const docPanel = document.getElementById('doc') as HTMLElement;
+    const docName = document.getElementById('doc-name') as HTMLElement;
+    const docMeta = document.getElementById('doc-meta') as HTMLElement;
+    const tabPreview = document.getElementById('tab-preview') as HTMLButtonElement;
+    const tabSource = document.getElementById('tab-source') as HTMLButtonElement;
+    const fmFold = document.getElementById('fm-fold') as HTMLDetailsElement;
+    const fmBody = document.getElementById('fm-body') as HTMLElement;
+    const tocFold = document.getElementById('toc-fold') as HTMLDetailsElement;
+    const tocNav = document.getElementById('toc') as HTMLElement;
+    const viewPreview = document.getElementById('view-preview') as HTMLElement;
+    const viewSource = document.getElementById('view-source') as HTMLElement;
+    const preview = document.getElementById('preview') as HTMLElement;
+    const source = document.getElementById('source') as HTMLTextAreaElement;
+    const copyBtn = document.getElementById('copy-md') as HTMLButtonElement;
+    const saveBtn = document.getElementById('save-md') as HTMLButtonElement;
+    const closeBtn = document.getElementById('close') as HTMLButtonElement;
+    const docStatus = document.getElementById('doc-status') as HTMLElement;
+
+    // §16：进行中 / 完成 / 提醒 / 错误 是四类反馈，不共用一句"处理中"
+    type Kind = 'busy' | 'done' | 'warn' | 'error' | 'idle';
+
+    function say(el: HTMLElement, kind: Kind, text: string) {
+        el.className = 't-status';
+        if (kind !== 'idle') el.classList.add(`is-${kind}`);
+        el.textContent = text;
+    }
+
+    function reduceMotion() {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    // ---------- 状态 ----------
+
+    let filename = '未命名文档.md';
+    // 载入时的原文。跟当前内容比一下就知道有没有改过，"换一个文件"才好决定要不要拦一下
+    let pristine = '';
+    // 在源码页改字时先不渲染预览（它此刻不可见），切回去再补
+    let previewStale = false;
+    let typing = 0;
+
+    const SAMPLE = [
+        '---',
+        'title: 示例文档',
+        'tags: [markdown, 示例]',
+        '---',
+        '',
+        '# 这是一级标题',
+        '',
+        '正文支持**加粗**、*斜体*、~~删除线~~、`行内代码`，以及 [外部链接](https://example.com)。',
+        '',
+        '## 列表与任务',
+        '',
+        '- 第一项',
+        '- 第二项',
+        '    - 嵌套的子项',
+        '- [x] 已完成的任务',
+        '- [ ] 还没做的任务',
+        '',
+        '## 表格',
+        '',
+        '| 格式 | 有损 | 适合 |',
+        '| --- | :-: | --- |',
+        '| PNG | 否 | 截图、线稿 |',
+        '| JPEG | 是 | 照片 |',
+        '',
+        '## 代码',
+        '',
+        '```js',
+        'const sum = [1, 2, 3].reduce((a, b) => a + b, 0);',
+        '```',
+        '',
+        '> 引用块里也能写**行内标记**。',
+        '',
+        '标题会自动进目录，字数和阅读时长在上面那行。',
+    ].join('\n');
+
+    // ---------- 渲染 ----------
+
+    function setMeta(words: number) {
+        docMeta.textContent = `${words} 字 · 约 ${readingMinutes(words)} 分钟`;
+    }
+
+    function buildToc(headings: { level: number; text: string; id: string }[]) {
+        // 只有一个标题时目录没有信息量，整块收起来
+        tocFold.hidden = headings.length < 2;
+        if (headings.length < 2) {
+            tocNav.replaceChildren();
+            return;
+        }
+
+        const top = Math.min(...headings.map((item) => item.level));
+
+        tocNav.replaceChildren(
+            ...headings.map((item) => {
+                const link = document.createElement('a');
+                link.href = `#${item.id}`;
+                // 目录里不需要看到 ** 和 `，去掉标记只留字
+                link.textContent = item.text.replace(/[*_`~]/g, '');
+                link.dataset.level = String(item.level);
+                // 缩进最多三层，再深就并到第三层，免得目录变成一条斜线
+                link.style.setProperty('--depth', String(Math.min(3, item.level - top)));
+
+                link.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    // 在源码页点目录，先切回预览再跳，否则跳到一个隐藏的元素上
+                    if (viewPreview.hidden) showTab('preview');
+                    const target = preview.querySelector(`[id="${CSS.escape(item.id)}"]`);
+                    target?.scrollIntoView({
+                        behavior: reduceMotion() ? 'auto' : 'smooth',
+                        block: 'start',
+                    });
+                });
+
+                return link;
+            })
+        );
+    }
+
+    /**
+     * full=false 只更新那些当下看得见的东西（frontmatter 折叠、字数），
+     * 把预览标记为待渲染。改一篇长文档时，每次按键都跑一遍完整渲染没有必要。
+     */
+    function refresh(full: boolean) {
+        const { frontmatter, body } = splitFrontmatter(source.value);
+
+        fmFold.hidden = frontmatter === null;
+        if (frontmatter !== null) fmBody.textContent = frontmatter;
+
+        if (!full) {
+            setMeta(countWords(body));
+            previewStale = true;
+            return;
+        }
+
+        // renderMarkdown 的输出里每个标签都是它自己生成的，原文全过了转义，
+        // 所以这里可以直接 innerHTML（见 scripts/markdown.ts 顶部的说明）
+        const result = renderMarkdown(body);
+        preview.innerHTML = result.html;
+        buildToc(result.headings);
+        setMeta(result.words);
+        previewStale = false;
+    }
+
+    function showTab(which: 'preview' | 'source') {
+        const isPreview = which === 'preview';
+
+        tabPreview.setAttribute('aria-selected', String(isPreview));
+        tabSource.setAttribute('aria-selected', String(!isPreview));
+        viewPreview.hidden = !isPreview;
+        viewSource.hidden = isPreview;
+
+        if (isPreview && previewStale) refresh(true);
+    }
+
+    function load(text: string, name: string) {
+        filename = name;
+        pristine = text;
+        source.value = text;
+        docName.textContent = name;
+
+        intake.hidden = true;
+        docPanel.hidden = false;
+
+        previewStale = true;
+        showTab('preview');
+        say(docStatus, 'idle', '');
+        say(intakeStatus, 'idle', '');
+    }
+
+    // ---------- 取文件 ----------
+
+    const MAX_BYTES = 4 * 1024 * 1024;
+
+    async function fromFile(file: File | null | undefined) {
+        if (!file) return;
+
+        if (file.size > MAX_BYTES) {
+            say(intakeStatus, 'error', `${file.name} 有 ${(file.size / 1024 / 1024).toFixed(1)} MB，超过 4 MB 的上限`);
+            return;
+        }
+
+        say(intakeStatus, 'busy', `正在读取 ${file.name}…`);
+
+        try {
+            const text = await file.text();
+            load(text, file.name);
+            // NUL 出现基本说明拖进来的是二进制文件，渲染器会把它清掉，这里先提个醒
+            if (text.includes('\u0000')) {
+                say(docStatus, 'warn', '文件里有不可见的二进制字符，已忽略。确认这是一个文本文件吗？');
+            }
+        } catch (error) {
+            say(intakeStatus, 'error', `读不出来：${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+
+    drop.addEventListener('click', () => fileInput.click());
+
+    drop.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            fileInput.click();
+        }
+    });
+
+    drop.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        drop.classList.add('is-over');
+    });
+
+    drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
+
+    drop.addEventListener('drop', (event) => {
+        event.preventDefault();
+        drop.classList.remove('is-over');
+        fromFile(event.dataTransfer?.files?.[0]);
+    });
+
+    fileInput.addEventListener('change', () => {
+        fromFile(fileInput.files?.[0]);
+        // 清空 value，否则再选同一个文件不会触发 change
+        fileInput.value = '';
+    });
+
+    blankBtn.addEventListener('click', () => {
+        load('', '未命名文档.md');
+        showTab('source');
+        source.focus();
+    });
+
+    sampleBtn.addEventListener('click', () => load(SAMPLE, '示例文档.md'));
+
+    // 粘贴直接进文档：从别处复制一段 Markdown 过来是最常见的用法，
+    // 不该逼着人先存成文件再拖进来（§6 常用的放在最前面）。
+    document.addEventListener('paste', (event) => {
+        // 已经打开文档时，粘贴属于源码框自己的事，别抢
+        if (intake.hidden) return;
+        const target = event.target as HTMLElement | null;
+        if (target?.closest('input, textarea, [contenteditable]')) return;
+
+        const text = event.clipboardData?.getData('text/plain');
+        if (!text || !text.trim()) return;
+
+        event.preventDefault();
+        load(text, '粘贴的内容.md');
+        say(docStatus, 'done', '已载入剪贴板里的内容');
+    });
+
+    // ---------- 文档态的交互 ----------
+
+    tabPreview.addEventListener('click', () => showTab('preview'));
+
+    tabSource.addEventListener('click', () => {
+        showTab('source');
+        source.focus();
+    });
+
+    // 分段控件是 tablist，左右方向键该能切换
+    for (const tab of [tabPreview, tabSource]) {
+        tab.addEventListener('keydown', (event) => {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+            event.preventDefault();
+            const next = tab === tabPreview ? tabSource : tabPreview;
+            showTab(next === tabPreview ? 'preview' : 'source');
+            next.focus();
+        });
+    }
+
+    source.addEventListener('input', () => {
+        // 字数这类轻量信息 150ms 内跟上就够，完整渲染留到切回预览时做
+        window.clearTimeout(typing);
+        typing = window.setTimeout(() => refresh(false), 150);
+    });
+
+    // Tab 键在源码框里应该缩进，而不是跳到下一个按钮
+    source.addEventListener('keydown', (event) => {
+        if (event.key !== 'Tab' || event.shiftKey) return;
+        event.preventDefault();
+        const { selectionStart: start, selectionEnd: end, value } = source;
+        source.value = `${value.slice(0, start)}    ${value.slice(end)}`;
+        source.selectionStart = source.selectionEnd = start + 4;
+        source.dispatchEvent(new Event('input'));
+    });
+
+    copyBtn.addEventListener('click', async () => {
+        if (!source.value) {
+            say(docStatus, 'warn', '文档是空的，没什么可复制');
+            return;
+        }
+        const ok = await copyText(source.value);
+        say(docStatus, ok ? 'done' : 'error', ok ? '源码已复制到剪贴板' : '复制失败，可以手动全选源码');
+    });
+
+    saveBtn.addEventListener('click', () => {
+        const name = /\.(md|markdown|mdx|txt)$/i.test(filename) ? filename : `${filename}.md`;
+        downloadBlob(new Blob([source.value], { type: 'text/markdown;charset=utf-8' }), name);
+        say(docStatus, 'done', `已下载 ${name}`);
+    });
+
+    closeBtn.addEventListener('click', () => {
+        // §2 forgiveness：只在真的改过内容时才拦一下，没改过就直接放行
+        if (source.value !== pristine && !window.confirm('改过的内容还没下载，确定要换一个文件吗？')) return;
+
+        docPanel.hidden = true;
+        intake.hidden = false;
+        source.value = '';
+        pristine = '';
+        preview.replaceChildren();
+        tocNav.replaceChildren();
+        tocFold.hidden = true;
+        fmFold.hidden = true;
+        say(docStatus, 'idle', '');
+        say(intakeStatus, 'idle', '');
+        drop.focus();
+    });
+
+</script>
