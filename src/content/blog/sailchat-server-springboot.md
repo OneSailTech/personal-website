@@ -638,4 +638,4 @@ SailChat-Server 的核心设计可以归纳为三个原则：
 
 ---
 
-项目开源地址：[SailChat-Server](https://github.com/XieYifan1201/SailChat-Server) | Flutter 客户端：[SailChat](https://github.com/XieYifan1201/SailChat)
+项目开源地址：[SailChat-Server](https://github.com/OneSailTech/SailChat-Server) | Flutter 客户端：[SailChat](https://github.com/OneSailTech/SailChat)
