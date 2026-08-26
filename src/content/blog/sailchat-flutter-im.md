@@ -13,7 +13,7 @@ tags:
 
 即时通讯是移动端最经典的应用场景之一，它几乎涉及客户端开发的每一个核心问题：实时通信、状态管理、本地持久化、鉴权、多媒体处理。我选择从零构建 SailChat，不是为了造又一个微信，而是想通过一个完整项目，把这些技术点串联起来，真正理解它们在工程中如何协作。
 
-SailChat 的后端采用 Spring Boot，独立仓库 [SailChat-Server](https://github.com/XieYifan1201/SailChat-Server)，本文聚焦 Flutter 客户端的实现。
+SailChat 的后端采用 Spring Boot，独立仓库 [SailChat-Server](https://github.com/OneSailTech/SailChat-Server)，本文聚焦 Flutter 客户端的实现。
 
 ## 技术选型
 
@@ -462,4 +462,4 @@ SailChat 的核心设计可以归纳为三个原则：
 
 ---
 
-项目开源地址：[SailChat](https://github.com/XieYifan1201/SailChat) | 后端：[SailChat-Server](https://github.com/XieYifan1201/SailChat-Server)
+项目开源地址：[SailChat](https://github.com/OneSailTech/SailChat) | 后端：[SailChat-Server](https://github.com/OneSailTech/SailChat-Server)
