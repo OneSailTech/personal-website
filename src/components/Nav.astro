@@ -95,8 +95,17 @@ const isCurrent = (link: { href: string; label: string }) =>
         else menu?.setAttribute('inert', '');
     }
 
-    btn?.addEventListener('click', () => setOpen(!open));
-    scrim?.addEventListener('click', () => setOpen(false));
+    const focusFirstMenuItem = () => menu?.querySelector<HTMLElement>('a')?.focus();
+
+    btn?.addEventListener('click', () => {
+        const next = !open;
+        setOpen(next);
+        if (next) requestAnimationFrame(focusFirstMenuItem);
+    });
+    scrim?.addEventListener('click', () => {
+        setOpen(false);
+        btn?.focus();
+    });
 
     // 点了菜单里的链接就收起：同页锚点跳转不会触发导航，菜单会一直挂着
     menu?.addEventListener('click', (e) => {
@@ -107,6 +116,20 @@ const isCurrent = (link: { href: string; label: string }) =>
         if (e.key === 'Escape' && open) {
             setOpen(false);
             btn?.focus();
+        }
+
+        if (e.key === 'Tab' && open && btn && menu) {
+            const focusable = [btn, ...menu.querySelectorAll<HTMLElement>('a')];
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
         }
     });
 
@@ -274,8 +297,8 @@ const isCurrent = (link: { href: string; label: string }) =>
         display: none;
         place-items: center;
         position: relative;
-        width: 34px;
-        height: 34px;
+        width: 44px;
+        height: 44px;
         border-radius: var(--r-full);
         color: var(--text-1);
         transition: background-color var(--dur-fast) var(--ease-out),

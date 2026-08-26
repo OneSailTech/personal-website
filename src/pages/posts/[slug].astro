@@ -196,6 +196,17 @@ const minutes = readingMinutes(words);
         }
     }
 
+    /* 手机上不再给正文套第二层“纸张边距”。页面栏距已经提供足够留白，
+       展平后每行能多容纳约 3～4 个汉字，长文阅读明显更从容。 */
+    @media (max-width: 600px) {
+        .sheet {
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
         .back:hover .chev {
             transform: none;

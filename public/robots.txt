@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /diag
+
+Sitemap: https://www.onesailtech.cn/sitemap-index.xml

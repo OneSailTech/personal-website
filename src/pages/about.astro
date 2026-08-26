@@ -168,7 +168,9 @@ const allCerts = [
     </main>
 
     <div id="gallery" aria-hidden="true">
-        {allCerts.map((src) => <img src={src} alt="" />)}
+        {allCerts.map((src) => (
+            <img src={src} alt="" loading="lazy" decoding="async" />
+        ))}
     </div>
 
     <script is:inline src="/viewer.min.js"></script>
@@ -361,7 +363,7 @@ const allCerts = [
     .awards {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 2px var(--sp-5);
+        gap: var(--sp-2) var(--sp-4);
     }
 
     .award {
@@ -370,8 +372,10 @@ const allCerts = [
         justify-content: space-between;
         gap: var(--sp-2);
         width: 100%;
-        padding: var(--sp-2) 0;
-        border-bottom: 1px solid transparent;
+        min-height: 48px;
+        padding: var(--sp-2) var(--sp-3);
+        border: 1px solid transparent;
+        border-radius: var(--r-md);
         color: var(--text-2);
         font-size: var(--fs-sm);
         line-height: var(--lh-tight);
@@ -380,19 +384,22 @@ const allCerts = [
 
     button.award {
         cursor: pointer;
-        transition: color var(--dur-fast) var(--ease-out),
+        background: var(--surface);
+        border-color: var(--hairline);
+        transition: background-color var(--dur-fast) var(--ease-out),
+            color var(--dur-fast) var(--ease-out),
             border-color var(--dur-fast) var(--ease-out),
             transform var(--dur-press) var(--ease-out);
-        transform-origin: left center;
     }
 
     button.award:hover {
         color: var(--text-1);
-        border-bottom-color: var(--hairline-strong);
+        background: var(--accent-subtle);
+        border-color: var(--accent-ring);
     }
 
     button.award:active {
-        transform: scale(0.99);
+        transform: scale(0.98);
     }
 
     .award-icon {

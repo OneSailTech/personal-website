@@ -2,43 +2,44 @@
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
 import PageHeader from '../components/PageHeader.astro';
+import ToolIcon from '../components/ToolIcon.astro';
 
 const tools = [
     {
         name: '图片格式转换',
         description: '上传单/多张图片，离线转换为 PNG、JPG、WEBP、BMP、GIF、AVIF、ICO、TIFF、SVG 等格式',
         url: '/tools/image-converter',
-        icon: '🖼️',
+        icon: 'image' as const,
     },
     {
         name: '视频格式转换',
         description: '上传单/多个视频，离线转换为 MP4、WEBM、AVI、MOV、MKV、GIF 等格式，或提取音频',
         url: '/tools/video-converter',
-        icon: '🎬',
+        icon: 'video' as const,
     },
     {
         name: 'Base64 编解码',
         description: '将文本或图片编码为 Base64，或将 Base64 解码为原文/图片',
         url: '/tools/base64',
-        icon: '🔐',
+        icon: 'base64' as const,
     },
     {
         name: '时间戳转换',
         description: 'Unix 时间戳与日期时间互相转换，支持一键复制结果',
         url: '/tools/timestamp',
-        icon: '⏰',
+        icon: 'time' as const,
     },
     {
         name: '颜色转换',
         description: 'HEX、RGB、HSL 颜色格式互相转换',
         url: '/tools/color-converter',
-        icon: '🎨',
+        icon: 'color' as const,
     },
     {
         name: 'Markdown 阅读器',
         description: '上传 Markdown 文件，使用文章同款样式即时预览',
         url: '/tools/markdown-reader',
-        icon: '📝',
+        icon: 'markdown' as const,
     },
 ];
 ---
@@ -56,7 +57,9 @@ const tools = [
         <div class="grid u-stagger u-stagger--scroll">
             {tools.map((tool, i) => (
                 <a class="u-card card" href={tool.url} style={`--i:${i}`}>
-                    <span class="icon" aria-hidden="true">{tool.icon}</span>
+                    <span class="icon" aria-hidden="true">
+                        <ToolIcon name={tool.icon} />
+                    </span>
 
                     <div class="body">
                         <h3>{tool.name}</h3>
@@ -106,13 +109,14 @@ const tools = [
         height: 44px;
         border-radius: var(--r-md);
         background: var(--surface-2);
-        font-size: 1.35rem;
-        line-height: 1;
-        transition: background-color var(--dur-fast) var(--ease-out);
+        color: var(--text-2);
+        transition: background-color var(--dur-fast) var(--ease-out),
+            color var(--dur-fast) var(--ease-out);
     }
 
     .card:hover .icon {
         background: var(--accent-subtle);
+        color: var(--accent);
     }
 
     .body {

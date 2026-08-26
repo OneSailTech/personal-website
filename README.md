@@ -95,14 +95,11 @@ const awards = [{ title: '荣誉名称', certIndex: 0 }];
 
 纯静态站点，产物在 `dist/`，任意静态托管都能用。Cloudflare Pages / Vercel / Netlify 连上仓库后，构建命令 `npm run build`，输出目录 `dist`。
 
-## 待补：域名
+## 域名与索引
 
-`astro.config.mjs` 里的 `site` 还是注释状态。拿到正式域名后填进去并取消注释，两件事会自动生效：
+正式域名为 `https://www.onesailtech.cn/`，配置在 `astro.config.mjs`。构建时会自动生成 canonical、绝对分享图片地址和 sitemap；`public/robots.txt` 会把搜索引擎指向 sitemap。
 
-1. `src/layouts/Layout.astro` 里的 canonical 链接与 `og:image` 绝对地址；
-2. sitemap —— `@astrojs/sitemap` 已在依赖里，但它强制要求 `site`，提前启用会直接构建失败，所以先注释掉。
-
-友链页展示的"本站信息"里的头像和站点地址也是从 `Astro.site` 取的，域名填好就自动变成完整地址。
+友链页展示的“本站信息”也从 `Astro.site` 读取，因此头像和站点地址会自动使用正式域名。
 
 ## 技术栈
 

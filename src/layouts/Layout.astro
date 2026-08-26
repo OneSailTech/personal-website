@@ -21,8 +21,8 @@ const {
     fx = 'page',
 } = Astro.props;
 
-// Astro.site 在 astro.config.mjs 配置 site 后才有值（域名待补，见配置里的 TODO）。
-// 未配置时退化为相对路径：本地与预览环境依然可用，只是分享卡片缺绝对地址。
+// 正式域名来自 astro.config.mjs；本地开发时 Astro 仍会据此生成可发布的
+// canonical 与分享图片绝对地址，避免预览地址被搜索引擎误收录。
 const canonical = Astro.site
     ? new URL(Astro.url.pathname, Astro.site).href
     : undefined;
@@ -45,6 +45,7 @@ const ogImage = Astro.site ? new URL(image, Astro.site).href : image;
         <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
 
         <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="XIE YIFAN" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:image" content={ogImage} />
@@ -59,6 +60,10 @@ const ogImage = Astro.site ? new URL(image, Astro.site).href : image;
         {/* 防闪白：必须同步阻塞执行，在首帧绘制前就把主题定下来。
             不能加 async/defer，否则用户会先看到浅色再跳深色。 */}
         <script is:inline>
+            // 给不支持 CSS scroll-driven animations 的浏览器启用可靠的
+            // IntersectionObserver 回退。放在首帧前标记，避免待入场元素先闪现。
+            document.documentElement.classList.add('js');
+
             try {
                 const saved = localStorage.getItem('theme');
                 if (saved === 'light' || saved === 'dark') {
@@ -93,6 +98,32 @@ const ogImage = Astro.site ? new URL(image, Astro.site).href : image;
         </button>
 
         <script>
+            // 列表项真正进入视口后再做一次固定时长的入场。长区块不再随着自身
+            // 高度被拖成漫长的半透明过程，卡片与章节也会使用同一套节奏。
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+            if (!reduceMotion.matches) {
+                const revealItems = document.querySelectorAll('.u-stagger--scroll > *');
+
+                if ('IntersectionObserver' in window) {
+                    const revealObserver = new IntersectionObserver(
+                        (entries) => {
+                            for (const entry of entries) {
+                                if (!entry.isIntersecting) continue;
+                                entry.target.classList.add('is-revealed');
+                                revealObserver.unobserve(entry.target);
+                            }
+                        },
+                        { rootMargin: '0px 0px -8% 0px', threshold: 0.05 }
+                    );
+
+                    revealItems.forEach((item) => revealObserver.observe(item));
+                } else {
+                    // 极旧浏览器至少保证内容可见，不把可读性押在动效 API 上。
+                    revealItems.forEach((item) => item.classList.add('is-revealed'));
+                }
+            }
+
             // 滚过一屏才出现。滚动监听按帧节流。
             const toTop = document.getElementById('to-top');
 

@@ -69,6 +69,17 @@ h4 {
     text-wrap: balance;
 }
 
+/* 支持中文短语分词的浏览器避免把“手机”“服务器”这类词拆到两行。
+   放在 supports 里，其他浏览器继续使用标准中文换行，不影响兼容性。 */
+@supports (word-break: auto-phrase) {
+    h1,
+    h2,
+    h3,
+    h4 {
+        word-break: auto-phrase;
+    }
+}
+
 h1 {
     font-size: var(--fs-h1);
     line-height: var(--lh-h1);
@@ -433,30 +444,19 @@ a:hover {
     animation-delay: calc(var(--i, 0) * 70ms);
 }
 
-/* 折叠版：首屏之外的内容不该在页面加载时就把动画放完——用户滚到了才升起。
-   进度由 view() 提供，纯 CSS，没有 IntersectionObserver。
-   注意 animation 简写会把 animation-timeline 重置成 auto，
-   所以 timeline 必须写在简写之后，顺序不能调。
-   不支持 view() 的浏览器落回上面那条固定延迟的版本。
+/* 首屏之外的内容在真正进入视口时一次性升起。固定时间比按元素高度
+   scrub 更一致：长区块不会在已经可读时仍停在半透明的中间帧。
+   .js 在首帧前设置；禁用 JS 时仍沿用上面的普通载入动画并保持可见。 */
+@media (prefers-reduced-motion: no-preference) {
+    .js .u-stagger--scroll > * {
+        animation: none;
+        opacity: 0;
+        transform: translate3d(0, var(--rise, 14px), 0);
+    }
 
-   两处刻意与载入版不同：
-   1. 缓动必须是 linear。滚动驱动的动画里"进度"就是滚动位置，再套一条
-      ease 曲线等于让元素的位移与滚动量不成正比——手上匀速滚，眼里的卡片
-      却忽快忽慢，那正是"顿挫感"的来源（§2 内容跟着输入 1:1 走）。
-   2. 区间必须落在"看得见的那段路"上。entry 的 0%~100% 量的是元素自己那段
-      高度：0% 是它的上沿刚碰到视口下沿，100% 是它整个进来了。所以
-      entry 6%~34% 只占元素高度的前三分之一——卡片还是贴在屏幕最下面的
-      一条缝时动画就播完了，再配 5px 位移，等于什么都没发生。
-      收成 entry 5%~90%：整段"从下沿升上来"的过程都在动，元素完全进屏时
-      刚好停住，之后它待在阅读区里是静止的——正在读的那一段不该还在动。 */
-@supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) {
-        .u-stagger--scroll > * {
-            animation: u-rise 1s linear both;
-            animation-delay: 0s;
-            animation-timeline: view();
-            animation-range: entry 5% entry 90%;
-        }
+    .js .u-stagger--scroll > *.is-revealed {
+        animation: u-rise var(--dur-spring) var(--ease-spring) both;
+        animation-delay: 0ms;
     }
 }
 
