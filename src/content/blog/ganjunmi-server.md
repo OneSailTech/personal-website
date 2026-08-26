@@ -353,5 +353,5 @@ GanJunMi-Server 是培训管理系统的后端服务，核心亮点在于：
 
 相关项目：
 
-- [GanJunMi-Admin](https://github.com/XieYifan1201/GanJunMi-Admin) — 后台管理系统
-- [GanJunMi-App](https://github.com/XieYifan1201/GanJunMi-App) — 移动端应用
+- [GanJunMi-Admin](https://github.com/OneSailTech/GanJunMi-Admin) — 后台管理系统
+- [GanJunMi-App](https://github.com/OneSailTech/GanJunMi-App) — 移动端应用
