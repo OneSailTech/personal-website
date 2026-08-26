@@ -289,5 +289,5 @@ GanJunMi-Admin 是一个功能完整的培训机构后台管理系统，核心�
 
 相关项目：
 
-- [GanJunMi-App](https://github.com/XieYifan1201/GanJunMi-App) — 移动端应用
-- [GanJunMi-Server](https://github.com/XieYifan1201/GanJunMi-Server) — 后端服务
+- [GanJunMi-App](https://github.com/OneSailTech/GanJunMi-App) — 移动端应用
+- [GanJunMi-Server](https://github.com/OneSailTech/GanJunMi-Server) — 后端服务
