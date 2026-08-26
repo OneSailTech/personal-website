@@ -135,18 +135,6 @@
     --z-nav: 100;
     --z-overlay: 200;
     --z-float: 90;
-
-    /* ---------- 过渡期兼容别名 ----------
-       尚未迁移的页面还在引用旧变量名。每迁完一个页面就少一处引用，
-       全部页面迁移完成后整块删除。 */
-    --site-content-width: var(--w-content);
-    --site-narrow-width: var(--w-narrow);
-    --site-page-gutter-total: calc(var(--gutter) * 2);
-    --shadow-card: var(--shadow-1);
-    --shadow-card-hover: var(--shadow-3);
-    --shadow-button: var(--shadow-1);
-    --shadow-button-hover: var(--shadow-2);
-    --shadow-button-neutral: var(--shadow-1);
 }
 
 /* ============================================================

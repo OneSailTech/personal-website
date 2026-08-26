@@ -13,12 +13,9 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.2",
-    "@ffmpeg/ffmpeg": "^0.12.15",
-    "@ffmpeg/util": "^0.12.2",
     "astro": "^6.3.0"
   },
-  "description": "```sh npm create astro@latest -- --template basics ```",
-  "main": "index.js",
+  "description": "谢怡帆的个人站点：Astro 6 静态生成，手写 CSS。",
   "keywords": [],
   "author": "",
   "license": "ISC"
