@@ -36,6 +36,13 @@
     --material-blur: blur(20px) saturate(180%);
     --material-edge: rgba(255, 255, 255, 0.55);
 
+    /* ---------- 装饰层：首页 hero 的网格与光斑 ----------
+       只有首页用，但值放这里——页面样式里不出现字面颜色。
+       三个都是"能整块关掉"的装饰：降低透明度或高对比时会被置为透明。 */
+    --fx-grid: rgba(0, 0, 0, 0.055);
+    --fx-glow: rgba(0, 113, 227, 0.1);
+    --fx-beam: rgba(0, 113, 227, 0.14);
+
     /* ---------- 阴影：中性，无色偏 ---------- */
     --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.04);
     --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -171,6 +178,11 @@
     --material-bg: rgba(20, 20, 22, 0.68);
     --material-edge: rgba(255, 255, 255, 0.1);
 
+    /* 深色下网格要更亮一点才看得见，光斑也可以更放开一档 */
+    --fx-grid: rgba(255, 255, 255, 0.07);
+    --fx-glow: rgba(41, 151, 255, 0.16);
+    --fx-beam: rgba(41, 151, 255, 0.2);
+
     /* 纯黑背景上阴影不可见，改用更亮的边框承担层次 */
     --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
     --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.4);
@@ -207,6 +219,10 @@
         --material-bg: rgba(20, 20, 22, 0.68);
         --material-edge: rgba(255, 255, 255, 0.1);
 
+        --fx-grid: rgba(255, 255, 255, 0.07);
+        --fx-glow: rgba(41, 151, 255, 0.16);
+        --fx-beam: rgba(41, 151, 255, 0.2);
+
         --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
         --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.4);
         --shadow-3: 0 14px 38px rgba(0, 0, 0, 0.65), 0 3px 10px rgba(0, 0, 0, 0.45);
@@ -223,6 +239,12 @@
     }
     :root[data-theme="dark"] {
         --material-bg: #141416;
+    }
+    /* 装饰性的光斑整块撤掉，只留网格作为质地 */
+    :root,
+    :root[data-theme="dark"] {
+        --fx-glow: transparent;
+        --fx-beam: transparent;
     }
 }
 
@@ -242,6 +264,13 @@
         --text-2: #d0d0d4;
         --text-3: #b8b8bd;
         --material-bg: #000000;
+    }
+    /* 文字后面不留任何淡色噪声 */
+    :root,
+    :root[data-theme="dark"] {
+        --fx-grid: transparent;
+        --fx-glow: transparent;
+        --fx-beam: transparent;
     }
 }
 

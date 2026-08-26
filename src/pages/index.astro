@@ -7,35 +7,95 @@ import { getCollection } from 'astro:content';
 const posts = (await getCollection('blog')).sort(
     (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
 );
+
+// 站点体量：全部在构建时从真实内容数出来，不写死。
+// 工具数直接数 pages/tools 下的文件，以后加一个工具页，这里自动加一。
+const toolCount = Object.keys(import.meta.glob('./tools/*.astro')).length;
+const tagCount = new Set(posts.flatMap((post) => post.data.tags ?? [])).size;
+
+// 两位补零：等宽数字下 07 与 12 才对得齐（§7）
+const pad = (value: number) => String(value).padStart(2, '0');
+
+const latest = posts[0]?.data.date;
+const updated = latest
+    ? `${latest.getFullYear()}.${pad(latest.getMonth() + 1)}.${pad(latest.getDate())}`
+    : '—';
+
+const stats = [
+    { key: '文章', value: pad(posts.length) },
+    { key: '标签', value: pad(tagCount) },
+    { key: '工具', value: pad(toolCount) },
+    { key: '最近更新', value: updated },
+];
+
+// 名字逐字入场，所以要拆成字符。空格换成不换行空格，免得行首行尾被折掉。
+const NAME = 'XIE YIFAN';
+const letters = [...NAME];
 ---
 
 <Layout title="XIE YIFAN" description="XIE YIFAN — 分享技术、设计与生活随笔">
     <Nav active="首页" />
 
-    <main id="main" class="u-container">
-        <section class="hero u-stagger">
-            <p class="u-label" style="--i:0">FULL-STACK DEVELOPER · CHINA</p>
-            <h1 style="--i:1">XIE YIFAN</h1>
-            <p class="subtitle" style="--i:2">
-                在这里分享关于 <strong>技术分享</strong>、<strong>设计思维</strong> 以及 <strong>生活随笔</strong>。
-                追求代码的优雅，也热爱生活的细腻。
-            </p>
-            <div class="actions" style="--i:3">
-                <a class="u-btn u-btn--primary" href="/posts">浏览文章</a>
-                <a class="u-btn u-btn--ghost" href="https://github.com/XieYifan1201" target="_blank" rel="noopener">
-                    Github
-                </a>
+    <main id="main">
+        <section class="hero" id="hero">
+            {/* 装饰层：网格 + 两团静态光 + 跟指针走的光斑 + 载入时扫过一次的线。
+                整层 aria-hidden 且 pointer-events: none，不参与阅读也不挡点击。 */}
+            <div class="fx" id="fx" aria-hidden="true">
+                <div class="fx-grid"></div>
+                <div class="fx-glow"></div>
+                <div class="fx-beam"></div>
+                <div class="fx-scan"></div>
+            </div>
+
+            <div class="u-container hero-inner">
+                <p class="u-label kicker">FULL-STACK DEVELOPER · CHINA</p>
+
+                <h1 class="name" aria-label={NAME}>
+                    {/* 一个字符一个 span，中间不能留换行：Astro 按 HTML 保留空白，
+                        那点缩进会变成 inline-block 之间的真空格，字距整行乱掉。 */}
+                    {letters.map((char, i) => <span class="ltr" style={`--n:${i}`}>{char === ' ' ? ' ' : char}</span>)}
+                </h1>
+
+                <p class="subtitle">
+                    在这里分享关于 <strong>技术分享</strong>、<strong>设计思维</strong> 以及 <strong>生活随笔</strong>。
+                    追求代码的优雅，也热爱生活的细腻。
+                </p>
+
+                <div class="actions">
+                    <a class="u-btn u-btn--primary" href="/posts">
+                        浏览文章
+                        <svg class="arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5"></path>
+                        </svg>
+                    </a>
+                    <a class="u-btn u-btn--ghost" href="https://github.com/XieYifan1201" target="_blank" rel="noopener">
+                        <svg class="mark" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A7.995 7.995 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path>
+                        </svg>
+                        Github
+                    </a>
+                </div>
+
+                <dl class="stats">
+                    {stats.map((item) => (
+                        <div class="stat">
+                            <dt class="u-label">{item.key}</dt>
+                            <dd class="value">{item.value}</dd>
+                        </div>
+                    ))}
+                </dl>
             </div>
         </section>
 
         {posts.length > 0 && (
-            <section class="posts">
+            <section class="posts u-container">
                 <div class="u-section-head">
                     <span class="idx">01</span>
                     <h2 class="title">最新文章 / LATEST POSTS</h2>
+                    <a class="u-label all" href="/posts">全部 {pad(posts.length)} 篇 →</a>
                 </div>
 
-                <div class="posts-grid u-stagger">
+                <div class="posts-grid u-stagger u-stagger--scroll">
                     {posts.map((post, i) => (
                         <PostCard
                             href={`/posts/${post.id}`}
@@ -44,6 +104,7 @@ const posts = (await getCollection('blog')).sort(
                             date={post.data.date}
                             tags={post.data.tags}
                             index={i}
+                            featured={i === 0}
                         />
                     ))}
                 </div>
@@ -53,27 +114,184 @@ const posts = (await getCollection('blog')).sort(
 </Layout>
 
 <style>
+    /* ============================================================
+       首页 hero
+       构成：一层极淡的网格 + 两团静态光晕 + 一枚跟着指针走的光斑，
+       文字压在最上面。只有指针会让画面动，没有任何无限循环的动画——
+       §14 明确反对整屏尺度的持续运动。
+       ============================================================ */
+
     .hero {
+        position: relative;
+        /* 装饰层与内容各占一层，z-index 不外溢到吸顶导航（--z-nav）上 */
+        isolation: isolate;
         display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        justify-content: center;
-        min-height: min(68svh, 560px);
-        padding-block: var(--sp-8);
+        align-items: center;
+        min-height: min(82svh, 680px);
+        padding-block: var(--sp-8) var(--sp-9);
     }
 
-    .hero h1 {
+    /* 满幅铺开：hero 自己占满页面宽度，容器的 max-width 只束住里面的 .hero-inner，
+       所以装饰层贴着 hero 的四边就够，不需要 100vw 那类会多出滚动条的写法。
+       上边越过导航高度，让半透明的顶栏后面真的有东西可以模糊（§12）。 */
+    .fx {
+        position: absolute;
+        top: calc(var(--nav-h) * -1);
+        inset-inline: 0;
+        bottom: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+        /* 网格尺寸只在这里定义一次：两层网格必须严格对齐 */
+        --cell: 72px;
+        /* 扫描线的行程。cqh 支持时用容器高度，见下面的 @supports */
+        --scan-to: 620px;
+        container-type: size;
+    }
+
+    @supports (height: 100cqh) {
+        .fx {
+            --scan-to: 100cqh;
+        }
+    }
+
+    .hero-inner {
+        position: relative;
+        z-index: 1;
+    }
+
+    .fx-grid,
+    .fx-glow,
+    .fx-beam {
+        position: absolute;
+        inset: 0;
+    }
+
+    /* 底层网格：顶部最清楚，往下渐隐，免得在正文和页脚之间留一条硬边 */
+    .fx-grid {
+        background-image: linear-gradient(to right, var(--fx-grid) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--fx-grid) 1px, transparent 1px);
+        background-size: var(--cell) var(--cell);
+        -webkit-mask-image: radial-gradient(125% 100% at 50% 0%, #000 32%, transparent 80%);
+        mask-image: radial-gradient(125% 100% at 50% 0%, #000 32%, transparent 80%);
+    }
+
+    /* 两团静态光：位置固定，不做任何位移动画 */
+    .fx-glow {
+        background: radial-gradient(46rem 30rem at 8% -12%, var(--fx-glow), transparent 70%),
+            radial-gradient(34rem 26rem at 92% 4%, var(--fx-glow), transparent 72%);
+    }
+
+    /* 指针光斑：同一套网格，只是亮一档，用一个跟着指针的圆形遮罩裁出来。
+       于是"光照到哪里，网格就在哪里亮起来"。
+       --mx / --my 由脚本每帧写一次；指针不在 hero 内时整层 opacity 为 0。 */
+    .fx-beam {
+        background-image: radial-gradient(20rem 20rem at var(--mx, 50%) var(--my, 42%), var(--fx-beam), transparent 70%),
+            linear-gradient(to right, var(--fx-beam) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--fx-beam) 1px, transparent 1px);
+        background-size: auto, var(--cell) var(--cell), var(--cell) var(--cell);
+        -webkit-mask-image: radial-gradient(17rem 17rem at var(--mx, 50%) var(--my, 42%), #000, transparent 72%);
+        mask-image: radial-gradient(17rem 17rem at var(--mx, 50%) var(--my, 42%), #000, transparent 72%);
+        opacity: 0;
+        transition: opacity var(--dur-base) var(--ease-out);
+    }
+
+    /* 淡入淡出交给 opacity（可合成），位置本身不做过渡——
+       §2：指针到哪里就是哪里，中间加插值等于加延迟。 */
+    .fx.is-lit .fx-beam {
+        opacity: 1;
+    }
+
+    /* 载入时自上而下扫过一次的细线。只有一次，不循环。 */
+    .fx-scan {
+        position: absolute;
+        inset-inline: 0;
+        top: 0;
+        height: 1px;
+        background: linear-gradient(to right, transparent, var(--accent), transparent);
+        opacity: 0;
+        animation: scan 1500ms var(--ease-out) 220ms both;
+    }
+
+    @keyframes scan {
+        0% {
+            opacity: 0;
+            transform: translate3d(0, 0, 0);
+        }
+        14% {
+            opacity: 0.5;
+        }
+        100% {
+            opacity: 0;
+            transform: translate3d(0, var(--scan-to), 0);
+        }
+    }
+
+    /* ---------- hero 文字 ----------
+       不用 .u-stagger：名字有自己的逐字动画，父子两层动画会互相打脸，
+       所以这里每个元素自己写延迟，节奏看得见也改得动。 */
+
+    .kicker,
+    .subtitle,
+    .actions,
+    .stats {
+        animation: u-rise var(--dur-spring) var(--ease-spring) both;
+    }
+
+    .kicker {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-3);
+        animation-delay: 60ms;
+    }
+
+    /* 标签后面拖一道渐隐的线：制图感，也把视线带向右边的留白 */
+    .kicker::after {
+        content: '';
+        height: 1px;
+        width: min(160px, 24vw);
+        background: linear-gradient(to right, var(--hairline-strong), transparent);
+    }
+
+    .name {
         margin-top: var(--sp-3);
         font-size: var(--fs-display);
         line-height: var(--lh-display);
         letter-spacing: var(--ls-display);
     }
 
+    /* 逐字"显影"：从下方一点点浮上来，同时从模糊收成实焦（§12 materialize）。
+       45ms 一个字，九个字总共 0.4s 出完，比整块淡入更有质感也不拖沓。 */
+    .ltr {
+        display: inline-block;
+        animation: ltr-in var(--dur-slow) var(--ease-spring) both;
+        animation-delay: calc(140ms + var(--n) * 45ms);
+    }
+
+    @keyframes ltr-in {
+        from {
+            opacity: 0;
+            transform: translate3d(0, 0.24em, 0);
+            filter: blur(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+            filter: blur(0);
+        }
+    }
+
     .subtitle {
-        max-width: var(--w-narrow);
+        max-width: var(--measure);
         margin-top: var(--sp-4);
         color: var(--text-2);
         font-size: var(--fs-body);
+        animation-delay: 380ms;
+    }
+
+    /* 关键词底下压一道淡色，比整句加粗更好扫读；深浅色共用同一个变量 */
+    .subtitle strong {
+        background: linear-gradient(to top, var(--accent-subtle) 0.42em, transparent 0.42em);
     }
 
     .actions {
@@ -81,10 +299,71 @@ const posts = (await getCollection('blog')).sort(
         flex-wrap: wrap;
         gap: var(--sp-3);
         margin-top: var(--sp-6);
+        animation-delay: 450ms;
     }
+
+    .arrow,
+    .mark {
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+    }
+
+    /* §8：箭头先往前挪一点，暗示按下去会去哪 */
+    .arrow {
+        transition: transform var(--dur-base) var(--ease-spring);
+    }
+
+    @media (hover: hover) {
+        .u-btn:hover .arrow {
+            transform: translateX(3px);
+        }
+    }
+
+    /* ---------- 站点体量 ----------
+       数字都是构建时数出来的真实值。等宽 + 表格数字，
+       换一篇文章之后这一行不会因为字宽不同而错位（§7）。 */
+
+    .stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--sp-5) var(--sp-8);
+        margin-top: var(--sp-8);
+        padding-top: var(--sp-4);
+        border-top: 1px solid var(--hairline);
+        animation-delay: 520ms;
+    }
+
+    .stat dt {
+        color: var(--text-3);
+    }
+
+    .value {
+        margin-top: var(--sp-1);
+        color: var(--text-1);
+        font-family: var(--font-mono);
+        font-size: var(--fs-h3);
+        line-height: var(--lh-h3);
+        letter-spacing: -0.01em;
+        font-variant-numeric: tabular-nums;
+        font-weight: 500;
+    }
+
+    /* ---------- 文章 ---------- */
 
     .posts {
         padding-bottom: var(--sp-9);
+    }
+
+    /* 章节标题右端的"全部 N 篇"：§6 常用的下一步就放在手边 */
+    .all {
+        color: var(--text-3);
+        white-space: nowrap;
+        transition: color var(--dur-fast) var(--ease-out);
+    }
+
+    .all:hover {
+        color: var(--accent);
     }
 
     .posts-grid {
@@ -93,9 +372,107 @@ const posts = (await getCollection('blog')).sort(
         gap: var(--sp-4);
     }
 
+    /* 最新那篇横跨整行。卡片由 PostCard 渲染，拿不到本页的作用域属性，用 :global。 */
+    .posts-grid > :global(:first-child) {
+        grid-column: 1 / -1;
+    }
+
     @media (max-width: 760px) {
         .posts-grid {
             grid-template-columns: 1fr;
         }
     }
+
+    @media (max-width: 600px) {
+        .hero {
+            min-height: min(78svh, 560px);
+        }
+
+        .stats {
+            /* 窄屏排两列，四项刚好两行，不用横向挤 */
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--sp-4);
+        }
+    }
+
+    /* ---------- 减弱动效（§14） ----------
+       位移、模糊、扫描线全部撤掉，只留淡入；指针光斑也不再跟随（见脚本）。
+       网格和光晕是静态的，留着不影响。 */
+    @media (prefers-reduced-motion: reduce) {
+        .kicker,
+        .subtitle,
+        .actions,
+        .stats,
+        .ltr {
+            animation: u-fade var(--dur-base) var(--ease-out) both;
+            animation-delay: 0ms;
+        }
+
+        .fx-scan {
+            display: none;
+        }
+
+        .u-btn:hover .arrow {
+            transform: none;
+        }
+    }
+
+
+
+
+
+
 </style>
+
+<script>
+    // hero 里跟着指针走的光斑。
+    // 只在真的有精细指针、且用户没要求减弱动效时启用：触屏上没有"指针位置"
+    // 这回事，停在最后一次触摸的地方亮着只会让人莫名其妙。
+    const hero = document.getElementById('hero');
+    const fx = document.getElementById('fx');
+
+    const fine = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    if (hero && fx && fine.matches && !still.matches) {
+        let px = 0;
+        let py = 0;
+        let queued = false;
+
+        // pointermove 一帧可能来好几个（高刷鼠标尤其明显）。
+        // 每帧只读一次 rect、只写一次样式，不在事件里反复触发布局（§11）。
+        const apply = () => {
+            queued = false;
+            const rect = fx.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+            fx.style.setProperty('--mx', `${((px - rect.left) / rect.width) * 100}%`);
+            fx.style.setProperty('--my', `${((py - rect.top) / rect.height) * 100}%`);
+        };
+
+        hero.addEventListener(
+            'pointermove',
+            (event) => {
+                px = event.clientX;
+                py = event.clientY;
+                if (!queued) {
+                    queued = true;
+                    requestAnimationFrame(apply);
+                }
+            },
+            { passive: true }
+        );
+
+        // 先把位置对准再点亮：否则光斑会从上一次停留的地方滑过来，
+        // 那一下位移不是用户做出来的（§2 位置只由指针决定）。
+        hero.addEventListener('pointerenter', (event) => {
+            px = event.clientX;
+            py = event.clientY;
+            apply();
+            fx.classList.add('is-lit');
+        });
+
+        hero.addEventListener('pointerleave', () => fx.classList.remove('is-lit'));
+    }
+</script>
+

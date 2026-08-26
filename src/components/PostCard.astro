@@ -9,9 +9,19 @@ interface Props {
     date: Date;
     tags?: string[];
     index?: number;
+    /** 头条版：标题与摘要各升一档，用在首页最新那一篇上。宽度由外面的网格决定。 */
+    featured?: boolean;
 }
 
-const { href, title, description, date, tags = [], index = 0 } = Astro.props;
+const {
+    href,
+    title,
+    description,
+    date,
+    tags = [],
+    index = 0,
+    featured = false,
+} = Astro.props;
 
 const display = date.toLocaleDateString('zh-CN', {
     year: 'numeric',
@@ -21,7 +31,7 @@ const display = date.toLocaleDateString('zh-CN', {
 const iso = date.toISOString().slice(0, 10);
 ---
 
-<a class="u-card card" href={href} style={`--i:${index}`}>
+<a class:list={['u-card', 'card', { 'is-featured': featured }]} href={href} style={`--i:${index}`}>
     <div class="meta">
         <time class="u-label" datetime={iso}>{display}</time>
         {tags.map((tag) => <Tag>{tag}</Tag>)}
@@ -77,6 +87,45 @@ const iso = date.toISOString().slice(0, 10);
         color: var(--accent);
         font-size: var(--fs-sm);
         font-weight: 500;
+    }
+
+    /* ---------- 头条版 ----------
+       §6：层级靠字号与留白做，不靠再加一个"置顶"徽标。 */
+
+    .card.is-featured {
+        gap: var(--sp-4);
+        padding: var(--sp-6);
+    }
+
+    .card.is-featured h3 {
+        font-size: var(--fs-h2);
+        line-height: var(--lh-h2);
+        letter-spacing: var(--ls-h2);
+    }
+
+    .card.is-featured .desc {
+        /* 卡片本身横跨整行，摘要不能跟着摊平，行长收回舒适区间 */
+        max-width: var(--measure);
+        color: var(--text-2);
+        font-size: var(--fs-body);
+        line-height: var(--lh-body);
+    }
+
+    @media (max-width: 700px) {
+        .card.is-featured {
+            padding: var(--sp-5);
+        }
+
+        .card.is-featured h3 {
+            font-size: var(--fs-h3);
+            line-height: var(--lh-h3);
+            letter-spacing: var(--ls-h3);
+        }
+
+        .card.is-featured .desc {
+            font-size: var(--fs-sm);
+            line-height: var(--lh-tight);
+        }
     }
 
     .arrow {

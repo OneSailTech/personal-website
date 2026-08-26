@@ -245,6 +245,9 @@ a:hover {
 }
 
 .u-section-head .title {
+    /* auto 外边距把标题之后的附加信息（数量、链接）推到右端；
+       没有附加元素时它什么也不改变。 */
+    margin-right: auto;
     font-family: var(--font-mono);
     font-size: var(--fs-label);
     letter-spacing: var(--ls-label);
@@ -394,6 +397,22 @@ a:hover {
     animation-delay: calc(var(--i, 0) * 60ms);
 }
 
+/* 折叠版：首屏之外的内容不该在页面加载时就把动画放完——用户滚到了才升起。
+   进度由 view() 提供，纯 CSS，没有 IntersectionObserver。
+   注意 animation 简写会把 animation-timeline 重置成 auto，
+   所以 timeline 必须写在简写之后，顺序不能调。
+   不支持 view() 的浏览器落回上面那条固定延迟的版本。 */
+@supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+        .u-stagger--scroll > * {
+            animation: u-rise 1s var(--ease-out) both;
+            animation-delay: 0s;
+            animation-timeline: view();
+            animation-range: entry 8% entry 52%;
+        }
+    }
+}
+
 /* 减弱动效：位移全部撤掉，只留淡入（§14） */
 @media (prefers-reduced-motion: reduce) {
     @keyframes u-rise {
@@ -433,6 +452,20 @@ a:hover {
 
 .u-scroll-edge.is-visible {
     opacity: 1;
+}
+
+/* ---------- 打印 ----------
+   入场动画在打印时不会"播完"，带 both 填充的元素会停在 opacity: 0 上，
+   整页印出来是空白。打印一律取消动画并强制可见。 */
+@media print {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
 }
 
 
