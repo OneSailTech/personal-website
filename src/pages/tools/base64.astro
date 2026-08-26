@@ -47,6 +47,7 @@ import ToolShell from '../../components/ToolShell.astro';
         </div>
 
         <p class="t-status" id="status-text" role="status" aria-live="polite"></p>
+        <p class="t-hint">解码能认折行的 Base64、URL 安全字母表（-_），尾部的 = 少了也会自动补齐。</p>
     </section>
     <div class="stack" id="mode-image" role="tabpanel" aria-labelledby="tab-image" hidden>
         <div class="t-drop" id="drop" role="button" tabindex="0" aria-label="选择或拖入图片">
@@ -174,8 +175,23 @@ import ToolShell from '../../components/ToolShell.astro';
         return btoa(binary);
     }
 
+    /**
+     * 解码时把常见的变体先归一化：
+     * - 换行与空格：从终端或邮件头里复制来的 Base64 基本都是折行的；
+     * - URL 安全字母表（RFC 4648 §5）：JWT、签名参数用的是 -_ 而不是 +/，atob 不认；
+     * - 缺失的 = 补齐：很多生成器省略尾部填充，atob 会直接抛错。
+     * 这些都不改变数据本身，是同一段内容的不同写法。
+     */
+    function normalizeBase64(value: string): string {
+        const compact = value.replace(/[\s\r\n]+/g, '').replace(/-/g, '+').replace(/_/g, '/');
+        const remainder = compact.length % 4;
+        if (remainder === 0) return compact;
+        // 余 1 是长度本身就不合法，补也补不出来，原样交给 atob 去报错
+        return remainder === 1 ? compact : compact + '='.repeat(4 - remainder);
+    }
+
     function fromBase64(value: string): string {
-        const binary = atob(value.replace(/\s+/g, ''));
+        const binary = atob(normalizeBase64(value));
         const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
         // fatal：不是合法 UTF-8 就抛错，而不是把一串乱码当结果交出去
         return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
