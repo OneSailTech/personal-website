@@ -9,16 +9,15 @@ import FriendCard from '../components/FriendCard.astro';
 // 直接挂对方站点的图，对方换图或挂了这里就跟着空一块。
 // TODO(名单待补)：下面两条是占位，拿到真实名单后整段替换。
 const friends = [
-    { name: '占位友链 A', bio: '这是一条占位数据，用来确认排版；换成真实友链后删掉。' },
-    { name: '占位友链 B', bio: '头像缺失时会退回昵称首字，所以占位条目也不会露出破图。' },
+    { name: '百趣云', bio: '九江百趣云科技有限公司董事长' },
 ];
 
 // 本站信息。域名还没定，astro.config.mjs 里的 site 也就还是注释状态；
 // 这里从 Astro.site 取，等域名填进配置，下面的绝对地址会自动变完整。
 const origin = Astro.site ? Astro.site.href.replace(/\/+$/, '') : '';
 const email = 'onesailtech@gmail.com';
-const nickname = 'XIE YIFAN';
-const bio = '全栈开发 · 移动应用开发 · 界面设计';
+const nickname = 'OneSailTech';
+const bio = '前端开发工程师';
 // 分享给别人的头像用不透明的那张：落在任何底色上都不会露出白边或黑块。
 const avatar = `${origin}/profile.webp`;
 const siteUrl = origin || '（域名待补）';
@@ -33,7 +32,7 @@ const infoRows = [
 const shareText = infoRows.map((row) => `${row.label}: ${row.value}`).join('\n');
 ---
 
-<Layout title="友链 — XIE YIFAN" description="XIE YIFAN 的友情链接，欢迎交换">
+<Layout title="友链 — OneSailTech" description="OneSailTech 的友情链接，欢迎交换">
     <Nav active="友链" />
 
     <main id="main" class="u-container">

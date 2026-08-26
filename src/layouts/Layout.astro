@@ -15,8 +15,8 @@ export interface Props {
 }
 
 const {
-    title = 'XIE YIFAN',
-    description = 'XIE YIFAN — 分享技术、设计与生活随笔',
+    title = 'OneSailTech',
+    description = 'OneSailTech — 分享技术、设计与生活随笔',
     image = '/profile.webp',
     fx = 'page',
 } = Astro.props;
@@ -45,7 +45,7 @@ const ogImage = Astro.site ? new URL(image, Astro.site).href : image;
         <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
 
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="XIE YIFAN" />
+        <meta property="og:site_name" content="OneSailTech" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:image" content={ogImage} />
@@ -100,35 +100,30 @@ const ogImage = Astro.site ? new URL(image, Astro.site).href : image;
         <script>
             // 列表项真正进入视口后再做一次固定时长的入场。长区块不再随着自身
             // 高度被拖成漫长的半透明过程，卡片与章节也会使用同一套节奏。
-            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+            const revealItems = document.querySelectorAll('.u-stagger--scroll > *');
 
-            if (!reduceMotion.matches) {
-                const revealItems = document.querySelectorAll('.u-stagger--scroll > *');
+            if ('IntersectionObserver' in window) {
+                const revealObserver = new IntersectionObserver(
+                    (entries) => {
+                        for (const entry of entries) {
+                            if (!entry.isIntersecting) continue;
+                            entry.target.classList.add('is-revealed');
+                            revealObserver.unobserve(entry.target);
+                        }
+                    },
+                    { rootMargin: '0px 0px -8% 0px', threshold: 0.05 }
+                );
 
-                if ('IntersectionObserver' in window) {
-                    const revealObserver = new IntersectionObserver(
-                        (entries) => {
-                            for (const entry of entries) {
-                                if (!entry.isIntersecting) continue;
-                                entry.target.classList.add('is-revealed');
-                                revealObserver.unobserve(entry.target);
-                            }
-                        },
-                        { rootMargin: '0px 0px -8% 0px', threshold: 0.05 }
-                    );
-
-                    revealItems.forEach((item) => revealObserver.observe(item));
-                } else {
-                    // 极旧浏览器至少保证内容可见，不把可读性押在动效 API 上。
-                    revealItems.forEach((item) => item.classList.add('is-revealed'));
-                }
+                revealItems.forEach((item) => revealObserver.observe(item));
+            } else {
+                // 极旧浏览器至少保证内容可见，不把可读性押在动效 API 上。
+                revealItems.forEach((item) => item.classList.add('is-revealed'));
             }
 
             // 滚过一屏才出现。滚动监听按帧节流。
             const toTop = document.getElementById('to-top');
 
             if (toTop) {
-                const still = window.matchMedia('(prefers-reduced-motion: reduce)');
                 let ticking = false;
 
                 const sync = () => {
@@ -194,12 +189,6 @@ const ogImage = Astro.site ? new URL(image, Astro.site).href : image;
                     if (from <= 0) return;
 
                     stop();
-
-                    // 大幅位移是前庭系统最敏感的那一类，减弱动效时直接落位（§14）
-                    if (still.matches) {
-                        window.scrollTo(0, 0);
-                        return;
-                    }
 
                     const ms = Math.min(880, 300 + Math.sqrt(from) * 12);
                     const t0 = performance.now();

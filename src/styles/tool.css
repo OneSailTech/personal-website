@@ -490,17 +490,3 @@
     overflow-wrap: anywhere;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .t-drop:active,
-    .t-drop.is-over svg,
-    .t-file-remove:active,
-    .t-segment button:active,
-    .t-range:active::-webkit-slider-thumb {
-        transform: none;
-    }
-
-    .t-status.is-busy::before {
-        animation: none;
-    }
-}
-

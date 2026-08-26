@@ -447,41 +447,15 @@ a:hover {
 /* 首屏之外的内容在真正进入视口时一次性升起。固定时间比按元素高度
    scrub 更一致：长区块不会在已经可读时仍停在半透明的中间帧。
    .js 在首帧前设置；禁用 JS 时仍沿用上面的普通载入动画并保持可见。 */
-@media (prefers-reduced-motion: no-preference) {
-    .js .u-stagger--scroll > * {
-        animation: none;
-        opacity: 0;
-        transform: translate3d(0, var(--rise, 14px), 0);
-    }
-
-    .js .u-stagger--scroll > *.is-revealed {
-        animation: u-rise var(--dur-spring) var(--ease-spring) both;
-        animation-delay: 0ms;
-    }
+.js .u-stagger--scroll > * {
+    animation: none;
+    opacity: 0;
+    transform: translate3d(0, var(--rise, 14px), 0);
 }
 
-/* 减弱动效：位移全部撤掉，只留淡入（§14） */
-@media (prefers-reduced-motion: reduce) {
-    @keyframes u-rise {
-        from {
-            opacity: 0;
-            transform: none;
-        }
-        to {
-            opacity: 1;
-            transform: none;
-        }
-    }
-
-    .u-stagger > * {
-        animation-delay: 0ms;
-    }
-
-    .u-btn:active,
-    .u-card:active,
-    .u-card:hover {
-        transform: none;
-    }
+.js .u-stagger--scroll > *.is-revealed {
+    animation: u-rise var(--dur-spring) var(--ease-spring) both;
+    animation-delay: 0ms;
 }
 
 /* ---------- 回到顶部：半透明材质圆片（§12） ----------
@@ -549,13 +523,6 @@ a:hover {
         bottom: var(--sp-4);
         width: 40px;
         height: 40px;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .u-to-top:active,
-    .u-to-top.is-visible {
-        transform: none;
     }
 }
 

@@ -25,7 +25,7 @@ const {
 } = Astro.props;
 ---
 
-<Layout title={`${title} — XIE YIFAN`} description={description ?? subtitle ?? title}>
+<Layout title={`${title} — OneSailTech`} description={description ?? subtitle ?? title}>
     <Nav active="工具" />
 
     <main
@@ -57,9 +57,4 @@ const {
         animation-delay: 150ms;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-        .tool-body {
-            animation-delay: 0ms;
-        }
-    }
 </style>

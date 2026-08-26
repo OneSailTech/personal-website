@@ -130,18 +130,11 @@ const { variant = 'page' } = Astro.props;
         }
     }
 
-    /* §14：扫描线是纯装饰的位移，减弱动效时直接不要。
-       网格和光晕是静态的，留着不影响。 */
-    @media (prefers-reduced-motion: reduce) {
-        .fx-scan {
-            display: none;
-        }
-    }
 </style>
 
 <script>
     // 页顶那枚跟着指针走的光斑。
-    // 只在真的有精细指针、且用户没要求减弱动效时启用：触屏上没有"指针位置"
+    // 只在真的有精细指针时启用：触屏上没有"指针位置"
     // 这回事，停在最后一次触摸的地方亮着只会让人莫名其妙。
     //
     // 装饰带在内容底下（z-index: -1）且 pointer-events: none，拿不到自己的
@@ -149,9 +142,8 @@ const { variant = 'page' } = Astro.props;
     const bands = Array.from(document.querySelectorAll<HTMLElement>('[data-fx]'));
 
     const fine = window.matchMedia('(hover: hover) and (pointer: fine)');
-    const still = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-    if (bands.length > 0 && fine.matches && !still.matches) {
+    if (bands.length > 0 && fine.matches) {
         let px = 0;
         let py = 0;
         let queued = false;

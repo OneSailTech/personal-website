@@ -31,7 +31,7 @@ const words = countWords(post.body ?? '');
 const minutes = readingMinutes(words);
 ---
 
-<Layout title={`${post.data.title} — XIE YIFAN`} description={post.data.description}>
+<Layout title={`${post.data.title} — OneSailTech`} description={post.data.description}>
     <Nav active="文章" />
 
     {/* 阅读进度：纯 CSS 滚动驱动，不支持的浏览器就是一条不动的 0 宽度线 */}
@@ -207,10 +207,5 @@ const minutes = readingMinutes(words);
         }
     }
 
-    @media (prefers-reduced-motion: reduce) {
-        .back:hover .chev {
-            transform: none;
-        }
-    }
 </style>
 

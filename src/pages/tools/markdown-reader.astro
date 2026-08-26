@@ -254,10 +254,6 @@ import '../../styles/markdown.css';
         el.textContent = text;
     }
 
-    function reduceMotion() {
-        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    }
-
     // ---------- 状态 ----------
 
     let filename = '未命名文档.md';
@@ -334,10 +330,7 @@ import '../../styles/markdown.css';
                     // 在源码页点目录，先切回预览再跳，否则跳到一个隐藏的元素上
                     if (viewPreview.hidden) showTab('preview');
                     const target = preview.querySelector(`[id="${CSS.escape(item.id)}"]`);
-                    target?.scrollIntoView({
-                        behavior: reduceMotion() ? 'auto' : 'smooth',
-                        block: 'start',
-                    });
+                    target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 });
 
                 return link;

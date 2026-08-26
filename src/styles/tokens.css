@@ -296,15 +296,3 @@
         --fx-beam: transparent;
     }
 }
-
-/* 减弱动效：时长压到接近瞬时，交给 base.css 关闭位移 */
-@media (prefers-reduced-motion: reduce) {
-    :root {
-        --dur-press: 1ms;
-        --dur-fast: 90ms;
-        --dur-base: 120ms;
-        --dur-spring: 120ms;
-        --dur-slow: 140ms;
-        --ease-spring: linear;
-    }
-}

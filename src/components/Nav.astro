@@ -26,9 +26,9 @@ const isCurrent = (link: { href: string; label: string }) =>
 
 <header class="nav-shell" id="nav-shell">
     <div class="u-container nav-inner">
-        <a class="logo" href="/" aria-label="XIE YIFAN — 返回首页">
+        <a class="logo" href="/" aria-label="OneSailTech — 返回首页">
             <img class="logo-img" src="/favicon.webp" alt="" width="30" height="30" />
-            <span class="logo-text">XIE YIFAN</span>
+            <span class="logo-text">OneSailTech</span>
         </a>
 
         <nav class="nav-links" aria-label="主导航">
@@ -315,10 +315,11 @@ const isCurrent = (link: { href: string; label: string }) =>
 
     .bar {
         position: absolute;
-        left: 9px;
+        left: 50%;
         top: calc(50% - 0.8px);
         width: 16px;
         height: 1.6px;
+        margin-left: -8px;
         border-radius: var(--r-full);
         background: currentColor;
         transition: transform var(--dur-base) var(--ease-spring);
@@ -453,22 +454,4 @@ const isCurrent = (link: { href: string; label: string }) =>
         color: var(--accent);
     }
 
-    /* ---------- 减弱动效：位移全撤，只留颜色与透明度（§14） ---------- */
-
-    @media (prefers-reduced-motion: reduce) {
-        .logo:active,
-        .nav-link:active,
-        .menu-btn:active,
-        .m-link:active {
-            transform: none;
-        }
-
-        .mobile-menu {
-            transform: none !important;
-        }
-
-        .nav-link::after {
-            transition: none;
-        }
-    }
 </style>

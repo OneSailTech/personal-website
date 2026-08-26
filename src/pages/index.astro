@@ -29,17 +29,17 @@ const stats = [
 ];
 
 // 名字逐字入场，所以要拆成字符。空格换成不换行空格，免得行首行尾被折掉。
-const NAME = 'XIE YIFAN';
+const NAME = 'OneSailTech';
 const letters = [...NAME];
 ---
 
-<Layout title="XIE YIFAN" description="XIE YIFAN — 分享技术、设计与生活随笔" fx="hero">
+<Layout title="OneSailTech" description="OneSailTech — 分享技术、设计与生活随笔" fx="hero">
     <Nav active="首页" />
 
     <main id="main">
         <section class="hero">
             <div class="u-container hero-inner">
-                <p class="u-label kicker">FULL-STACK DEVELOPER · CHINA</p>
+                <p class="u-label kicker">XIE YIFAN</p>
 
                 <h1 class="name" aria-label={NAME}>
                     {/* 一个字符一个 span，中间不能留换行：Astro 按 HTML 保留空白，
@@ -284,21 +284,4 @@ const letters = [...NAME];
         }
     }
 
-    /* ---------- 减弱动效（§14） ----------
-       位移与模糊全部撤掉，只留淡入。装饰带那一层自己在 HeroFx 里响应。 */
-    @media (prefers-reduced-motion: reduce) {
-        .kicker,
-        .subtitle,
-        .actions,
-        .stats,
-        .ltr {
-            animation: u-fade var(--dur-base) var(--ease-out) both;
-            animation-delay: 0ms;
-        }
-
-        .u-btn:hover .arrow {
-            transform: none;
-        }
-    }
 </style>
-
