@@ -542,6 +542,11 @@ const allCerts = [
     }
 
     @media (max-width: 520px) {
+        /* 手机上头像只承担识别作用，别让它把姓名和职业挤出首屏。 */
+        .portrait-stage {
+            width: min(100%, 168px);
+        }
+
         .edu-item {
             flex-direction: column;
             align-items: flex-start;

@@ -296,10 +296,10 @@ import { VIDEO_FORMATS } from '../../scripts/video';
                 setProgress((i + 1) / total);
             }
         } catch (error) {
-            // 走到这里说明连 FFmpeg 都没加载起来，多半是断网或 CDN 被拦
+            // 走到这里说明连 FFmpeg 都没加载起来，常见原因是资源读取失败或内存不足
             const message = error instanceof Error ? error.message : String(error);
             pushLog(`[加载失败] ${message}`);
-            say('error', cancelled ? '已取消' : `FFmpeg 加载失败：${message}。检查网络后重试。`);
+            say('error', cancelled ? '已取消' : `FFmpeg 加载失败：${message.replace(/[。.]$/, '')}。请检查网络后重试。`);
             busy = false;
             convertBtn.disabled = false;
             clearBtn.disabled = false;

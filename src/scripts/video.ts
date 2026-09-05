@@ -4,6 +4,10 @@
 // 也就是每次都重新拉一遍约 30 MB 的 core + wasm。这里改成模块级单例：
 // 第一次调用才加载，之后所有转换共用同一个实例。
 
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import coreURL from '@ffmpeg/core?url';
+import wasmURL from '@ffmpeg/core/wasm?url';
+
 export interface VideoFormat {
     /** 同时用作扩展名 */
     id: string;
@@ -113,9 +117,6 @@ export function safeName(name: string, index: number): string {
 
 // ---------- FFmpeg 单例 ----------
 
-const ESM_URL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.15/+esm';
-const CORE_BASE = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
-
 type LogHandler = (line: string) => void;
 type ProgressHandler = (ratio: number) => void;
 
@@ -142,17 +143,14 @@ export async function getFFmpeg(): Promise<any> {
     if (pending) return pending;
 
     pending = (async () => {
-        // @vite-ignore：这个地址要留到运行时再取，不能让打包器把它解析成本地依赖
-        const { FFmpeg } = await import(/* @vite-ignore */ ESM_URL);
         const ffmpeg = new FFmpeg();
 
         ffmpeg.on('log', ({ message }: { message: string }) => onLog?.(message));
         ffmpeg.on('progress', ({ progress }: { progress: number }) => onProgress?.(progress));
 
-        await ffmpeg.load({
-            coreURL: `${CORE_BASE}/ffmpeg-core.js`,
-            wasmURL: `${CORE_BASE}/ffmpeg-core.wasm`,
-        });
+        // Worker、core 与 wasm 全部交给 Vite 产出为本站资源。远程 Worker 会被
+        // 浏览器同源策略拦截；运行时依赖 CDN 也会让工具在网络不稳时一直卡住。
+        await ffmpeg.load({ coreURL, wasmURL });
 
         instance = ffmpeg;
         pending = null;

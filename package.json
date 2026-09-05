@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.2",
+    "@ffmpeg/core": "^0.12.6",
+    "@ffmpeg/ffmpeg": "^0.12.15",
     "astro": "^6.3.0"
   },
   "description": "谢怡帆的个人站点：Astro 6 静态生成，手写 CSS。",

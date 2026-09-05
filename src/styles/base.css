@@ -11,6 +11,12 @@
     box-sizing: border-box;
 }
 
+/* author 样式里的 display:grid/flex 会覆盖浏览器自带的 [hidden] 规则。
+   工具页大量用 hidden 控制空面板、进度条和取消按钮，因此在基元层兜底。 */
+[hidden] {
+    display: none !important;
+}
+
 html {
     /* clip 不会创建滚动容器，因此不会破坏 position: sticky。
        hidden 会——这正是原先关于页头像漂移的成因之一。 */
@@ -539,7 +545,6 @@ a:hover {
         transform: none !important;
     }
 }
-
 
 
 
