@@ -1,0 +1,137 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { className, classRoster } from '../../data/people-picker';
+import '../../styles/people-picker.css';
+---
+
+<Layout title="随机抽人 — OneSailTech" description="从班级或自定义名单中随机抽人，支持指定排除和跨轮免重复。" standalone>
+    <div class="people-picker">
+        <main id="main" class="picker-main">
+            <a class="picker-back" href="/tools"><span aria-hidden="true">←</span> 返回工具列表</a>
+
+            <noscript><p class="picker-noscript">请启用 JavaScript 以使用随机抽人。</p></noscript>
+
+            <div class="picker-workspace">
+                <section class="picker-panel picker-stage" id="picker-stage" data-phase="ready" aria-labelledby="picker-stage-title" tabindex="-1">
+                    <div class="picker-stage-header">
+                        <h1 id="picker-stage-title"><span class="picker-stage-icon" aria-hidden="true"></span>随机抽人</h1>
+                        <span class="picker-status" id="picker-status">待抽取</span>
+                    </div>
+
+                    <div class="picker-stage-body">
+                        <div class="picker-radar" id="picker-radar" aria-hidden="true">
+                            <div class="picker-orbit"></div>
+                            <div class="picker-radar-center">
+                                <span class="picker-radar-value" id="picker-radar-value">{classRoster.length}</span>
+                                <span class="picker-radar-caption" id="picker-radar-caption">可抽取人数</span>
+                            </div>
+                        </div>
+
+                        <div class="picker-results" id="picker-results" hidden>
+                            <h3 id="picker-result-title">本轮抽中</h3>
+                            <ol id="picker-winners" aria-labelledby="picker-result-title"></ol>
+                        </div>
+                    </div>
+
+                    <div class="picker-stage-actions">
+                        <p id="picker-stage-note" class="picker-stage-note"></p>
+                        <div class="picker-action-row">
+                            <button type="button" class="picker-draw" id="picker-draw" disabled>
+                                <span aria-hidden="true">✦</span><span id="picker-draw-label">开始抽取</span>
+                            </button>
+                            <button type="button" class="picker-button picker-copy" id="picker-copy" hidden>复制结果</button>
+                        </div>
+                        <p class="picker-visually-hidden" id="picker-announcement" role="status"></p>
+                    </div>
+                </section>
+
+                <aside class="picker-controls" aria-label="抽取配置">
+                    <section class="picker-panel picker-settings" aria-labelledby="picker-settings-title">
+                        <h2 id="picker-settings-title">抽取设置</h2>
+                        <fieldset id="picker-settings-fields" disabled>
+                            <div class="picker-field">
+                                <label for="picker-source">名单来源</label>
+                                <div class="picker-source-row">
+                                    <select id="picker-source" class="picker-input">
+                                        <option value="class">{className}</option>
+                                        <option value="custom">自定义名单</option>
+                                    </select>
+                                    <button type="button" class="picker-button" id="picker-edit" hidden>编辑</button>
+                                </div>
+                            </div>
+
+                            <div class="picker-field picker-count-row">
+                                <label for="picker-count">每轮抽取人数</label>
+                                <div class="picker-stepper">
+                                    <button type="button" id="picker-minus" aria-label="减少抽取人数" disabled>−</button>
+                                    <input type="number" inputmode="numeric" id="picker-count" min="1" max={classRoster.length} step="1" value="1" required />
+                                    <button type="button" id="picker-plus" aria-label="增加抽取人数">+</button>
+                                </div>
+                            </div>
+
+                            <label class="picker-repeat">
+                                <input type="checkbox" id="picker-repeat" checked aria-describedby="picker-repeat-help" />
+                                <span>跨轮免重复 <small id="picker-repeat-help">已抽中的人自动跳过</small></span>
+                            </label>
+                        </fieldset>
+                    </section>
+
+                    <section class="picker-panel picker-roster" aria-labelledby="picker-roster-title">
+                        <div class="picker-roster-header">
+                            <h2 id="picker-roster-title">人员名单</h2>
+                            <p id="picker-pool">可抽 {classRoster.length} / {classRoster.length} 人</p>
+                        </div>
+
+                        <div class="picker-search-wrap">
+                            <span class="picker-search-icon" aria-hidden="true"></span>
+                            <input type="search" class="picker-input" id="picker-search" aria-label="搜索姓名或学号" placeholder="搜索姓名或学号" autocomplete="off" />
+                        </div>
+                        <div class="picker-roster-actions">
+                            <span id="picker-roster-summary">已选 {classRoster.length} 人</span>
+                            <div>
+                                <button type="button" id="picker-include" class="picker-text-button" disabled>全选</button>
+                                <button type="button" id="picker-exclude" class="picker-text-button" disabled>全部排除</button>
+                            </div>
+                        </div>
+
+                        <div class="picker-roster-scroll" tabindex="0" role="region" aria-label="勾选要参与的人员">
+                            <ul id="picker-roster-list"></ul>
+                            <p class="picker-empty" id="picker-no-match" hidden>没有匹配的人员</p>
+                        </div>
+                        <a class="picker-stage-link" href="#picker-stage">返回抽取舞台 <span aria-hidden="true">↑</span></a>
+                    </section>
+                </aside>
+            </div>
+
+            <details class="picker-panel picker-history">
+                <summary>
+                    <span>抽取记录</span><span id="picker-history-count">0 轮</span>
+                </summary>
+                <div class="picker-history-body">
+                    <p id="picker-no-history" class="picker-empty">还没有抽取记录</p>
+                    <ol id="picker-history-list" aria-label="按时间倒序排列的抽取记录"></ol>
+                    <button type="button" class="picker-text-button" id="picker-reset" hidden>清空记录</button>
+                </div>
+            </details>
+        </main>
+
+        <dialog id="picker-dialog" class="picker-dialog" aria-labelledby="picker-dialog-title">
+            <form id="picker-custom-form">
+                <header>
+                    <h2 id="picker-dialog-title">自定义名单</h2>
+                    <button type="button" class="picker-button" id="picker-cancel-icon" aria-label="关闭">×</button>
+                </header>
+                <label for="picker-custom-input">粘贴人员名单</label>
+                <p id="picker-custom-help">每行一人，填写姓名和可选的学号，也可粘贴 Excel 的序号、姓名、学号三列。</p>
+                <textarea id="picker-custom-input" class="picker-input" rows="8" placeholder={"张三\t10001\n李四\t10002\n王五"} aria-describedby="picker-custom-help picker-custom-error" autofocus required></textarea>
+                <p id="picker-custom-error" class="picker-error" role="alert"></p>
+                <footer>
+                    <button type="button" class="picker-button" id="picker-cancel">取消</button>
+                    <button type="submit" class="picker-draw">保存并使用</button>
+                </footer>
+            </form>
+        </dialog>
+    </div>
+</Layout>
+
+<script src="../../scripts/people-picker.ts"></script>

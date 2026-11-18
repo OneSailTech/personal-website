@@ -1,6 +1,6 @@
 ---
 interface Props {
-    name: 'image' | 'video' | 'base64' | 'time' | 'color' | 'markdown';
+    name: 'image' | 'video' | 'base64' | 'time' | 'color' | 'markdown' | 'people';
 }
 
 const { name } = Astro.props;
@@ -16,6 +16,12 @@ const { name } = Astro.props;
     stroke-linejoin="round"
     aria-hidden="true"
 >
+    {name === 'people' && (
+        <>
+            <circle cx="9" cy="8" r="3"></circle>
+            <path d="M3 20v-2a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v2M16 5a3 3 0 0 1 0 6m3 2.5a5 5 0 0 1 2 4V20"></path>
+        </>
+    )}
     {name === 'image' && (
         <>
             <rect x="3" y="4" width="18" height="16" rx="2.5"></rect>

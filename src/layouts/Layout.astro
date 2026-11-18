@@ -12,6 +12,7 @@ export interface Props {
      * 'none' 留给确实不需要的页面（目前没有，但比硬编码判断路径可靠）。
      */
     fx?: 'hero' | 'page' | 'none';
+    standalone?: boolean;
 }
 
 const {
@@ -19,6 +20,7 @@ const {
     description = 'OneSailTech — 分享技术、设计与生活随笔',
     image = 'http://q.qlogo.cn/headimg_dl?dst_uin=1839177674&spec=640&img_type=jpg',
     fx = 'page',
+    standalone = false,
 } = Astro.props;
 
 // 正式域名来自 astro.config.mjs；本地开发时 Astro 仍会据此生成可发布的
@@ -77,25 +79,28 @@ const ogImage = Astro.site ? new URL(image, Astro.site).href : image;
     <body>
         <a class="skip-link" href="#main">跳到主内容</a>
 
-        {fx !== 'none' && <HeroFx variant={fx} />}
+        {!standalone && fx !== 'none' && <HeroFx variant={fx} />}
 
         <slot />
 
-        <footer class="site-footer">
-            <div class="u-container footer-inner">
-                <p class="u-label">&copy; {new Date().getFullYear()} XIE YIFAN</p>
-                <a class="u-label beian" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">
-                    赣ICP备2023013465号-3
-                </a>
-            </div>
-        </footer>
+        {!standalone && (
+            <>
+                <footer class="site-footer">
+                    <div class="u-container footer-inner">
+                        <p class="u-label">&copy; {new Date().getFullYear()} XIE YIFAN</p>
+                        <a class="u-label beian" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">
+                            赣ICP备2023013465号-3
+                        </a>
+                    </div>
+                </footer>
 
-        {/* 回到顶部。原先只有文章详情页有，长的列表页滚到底就得一路滚回去。 */}
-        <button class="u-to-top" id="to-top" type="button" aria-label="返回顶部" title="返回顶部">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 19V6M6 12l6-6 6 6"></path>
-            </svg>
-        </button>
+                <button class="u-to-top" id="to-top" type="button" aria-label="返回顶部" title="返回顶部">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 19V6M6 12l6-6 6 6"></path>
+                    </svg>
+                </button>
+            </>
+        )}
 
         <script>
             // 列表项真正进入视口后再做一次固定时长的入场。长区块不再随着自身
